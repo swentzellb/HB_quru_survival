@@ -4,13 +4,18 @@
 # Combining Hubbard Brook historical Red Oak seedling survival and health data (2011-2019)
 # with environmental data from 2019
 
+# updated Sept 8, 2020
+# Figures
+# Combining: Hubbard Brook historical QURU seedling survival and health data (2011-2019)
+# and Hubbard Brook environmental data from 2019 on 10 subset transects in hemlock-dom areas
+
 #load packages
 library(tidyverse)
 library(tidyr)
-library(ggplot2)
 library(lme4)
 library(MASS)
 library(raster)
+library(ggplot2)
 
 #set working directory
 setwd("~/Thesis/HB_quru_survival/data")
@@ -63,10 +68,6 @@ TransBins <- seq(0, 100, by = 20)
 Litter <- Litter %>%
   mutate(DistBin = findInterval(Distance, TransBins))
 
-#################################################################################################################
-#################################################################################################################
-
-
 #####################################################################################################################
 #####################################################################################################################
 ###Data Cleaning - Cover Substrate
@@ -82,30 +83,27 @@ Cover_Sub<- Cover_Sub %>%
 ##########################################################
 ##Binning
 
-# Create vector of transect bin sizes
-TransBins <- seq(0, 100, by = 20)
-
 # create new bins and add identifying columns
 Cover_Sub <- Cover_Sub %>%
   mutate(DistBin = findInterval(Distance, TransBins)) %>% # bin to 20m
   mutate(PlotTrans = paste(PlotTag, TransDir, sep = "_")) %>% 
   mutate(PlotTransBin = paste(PlotTrans, DistBin, sep = "_")) #unique bin ID
   
-
 #remove p and change PlotTag name to VW
 # Cover_Sub <- Cover_Sub %>%
 #   separate(PlotTag, c("PlotTag", "VW"), sep=1)
-
 
 #######################################################################################################################
 #######################################################################################################################
 ###Data Cleaning - Prism
 
 #separate into Point and Plot Direction - N/S columns
-Prism<- Prism %>% separate(Point, c("Point", "PlotDir"), sep="_") %>% 
-  separate(Point, c("Distance", "TransDir"), sep = -1) %>% 
-  separate(Distance, c("PointType", "Distance"), sep = 1)
-
+Prism<- Prism %>% 
+  mutate(Point2 = Point) %>%
+  separate(Point2, c("Point2", "PlotDir"), sep="_") %>%
+  separate(Point2, c("Distance", "TransDir"), sep = -1) %>%
+  separate(Distance, c("PointType", "Distance"), sep = 1) %>%
+  mutate(PlotPoint = paste(PlotTag, Point, sep = "_")) #unique point ID
 #View(Prism)
 
 ########################################################################
@@ -114,13 +112,7 @@ Prism<- Prism %>% separate(Point, c("Point", "PlotDir"), sep="_") %>%
 Prism <- Prism %>%
   mutate(PlotTrans = paste(PlotTag, TransDir, sep = "_")) %>%
   mutate(DistBin = findInterval(Distance, TransBins)) %>%
-  mutate(PlotTransBin = paste(PlotTrans, DistBin, sep = "_"))
-
-# bin at 20m levels and summarize mean number of TSCA trees
-# Prism_Bin <- Prism %>%
-#   group_by(PlotTrans, DistBin)%>%
-#   summarize(TSCA_mean = mean(TSCA, na.rm=TRUE))
-
+  mutate(PlotTransBin = paste(PlotTrans, DistBin, sep = "_")) #unique bin ID
 
 #########################################################################
 #########################################################################
@@ -134,6 +126,7 @@ Seed <- Seed %>% separate(Point, c("Point", "PlotDir"), sep="_") %>%
 
 #Define variables as numeric for analysis
 Seed$Lvs18 <- as.numeric(Seed$Lvs18)
+Seed$Hgt18 <- as.numeric(Seed$Hgt18)
 
 ##########################################################################################
 #Binning
@@ -145,7 +138,7 @@ Seed <- Seed %>%
   mutate(PlotTransBin = paste(PlotTrans, DistBin, sep = "_")) # add a unique ID for each bin
 
 ####################################################################
-##Joining
+##New Variables
 
 # add another column equal to PlotTag - PlotTag is primary key to join with another dataset
 Seed$PlotTag <- Seed$VW
@@ -161,8 +154,6 @@ Seed$Age18 <- (2018 - Seed$BirthYear) + 1
 # create test variables equal to seedling status variables for each yr
 Seed$Stat19test <- Seed$Stat19
 Seed$Stat18test <- Seed$Stat18
-
-table(Seed$Stat18test)
 
 # change PD and NAs in 2019 column to 0
 Seed$Stat19test[Seed$Stat19=="PD"| is.na(Seed$Stat19test)] <- 0
@@ -192,6 +183,28 @@ Seed$Stat18_19[Seed$Stat18test==0]<- NA
 
 table(is.na(Seed$Stat18_19)) #should be 654 false
 
+
+##############################################################################################
+###############################################################################################
+## Data Cleaning - canopy photos
+
+#clean canopy photo dataset
+Can <- Can %>%
+  dplyr::select(Plot, Point, PerCnpyOpenTotal) %>%
+  mutate(Distance = substr(Point, start=2, stop=3))%>%
+  mutate(DistBin = findInterval(Distance, TransBins),
+         Point2 = Point, 
+         PlotPoint = paste(Plot, Point, sep="_")) %>% #add unique ID for point
+  separate(Point2, c("x", "TransDir"), sep = -1)%>%
+  mutate(PlotTransBin = paste(Plot, TransDir, DistBin, sep="_")) #add unique ID for bins
+
+#subset smaller dataset for canopy photos
+Can_2 <- Can %>% 
+  dplyr::select(PlotTransBin, PerCnpyOpenTotal, PlotPoint)
+
+################################################################################################################
+#############################################################################################################
+#### Binning
 ############################################################################################################
 # summarize seedling survival between 2018 and 2019 to 20m bins
 Seed_Bin <- Seed %>%
@@ -234,7 +247,6 @@ Seed_Bin_Enviro <- Seed %>%
   mutate(PlotTransBin = paste(PlotTrans, DistBin, sep = "_"))%>%
   dplyr::select(PlotTransBin, Abund18, Abund19, Surv_18_19, PlotTrans)
 
-
 #summarize Canopy Cover densio, Shrub Cover and Available Substrate to 20m bins
 Cover_Sub_Bin <- Cover_Sub %>%
   group_by(PlotTag, PlotTrans, DistBin)%>%
@@ -242,6 +254,7 @@ Cover_Sub_Bin <- Cover_Sub %>%
             ShrubCover_mean = mean(ShrubCover, na.rm=TRUE), 
             Sub_mean = mean(Litter, na.rm=TRUE))%>%
   mutate(PlotTransBin = paste(PlotTrans, DistBin, sep = "_"))
+
 
 #################################################################################
 #################################################################################
@@ -297,102 +310,6 @@ Cover_Surv <- left_join(Cover_Sub_Bin, Seed_Bin_Enviro, by="PlotTransBin")
 #join Seedling Abundance at Plot Transect level with distances to valley entrance
 Seed_Dist <- left_join(Seed_Bin2, CoordAdj, by="PlotTrans")
 
-#remove low canopy cover outlier
-#Cover_Surv_out <- Cover_Surv %>% filter(CanCover_mean > 65)
-
-#PLOT 1 
-#plot of mean canopy cover (densiometer) at 20m bins by percent seedling survival 2018-2019
-ggplot(Cover_Surv, aes(x=CanCover_mean, y=Surv_18_19))+
-  geom_point()+
-  labs(x="% Canopy Cover",
-       y="Proportion Seedling Survival")+
-  theme_light()
-
-#PLOT 2 
-#plot of mean shrub cover at 20m bins by percent seedling survival 2018-2019
-p2 <- ggplot(Cover_Surv, aes(x=ShrubCover_mean, y=Surv_18_19))+
-  geom_point(size=3)+
-  labs(x="Shrub Cover (%)",
-       y="Seedling survival (proportion)")+
-  theme_classic()+
-  theme(axis.title = element_text(size=16), 
-        axis.text = element_text(size=14))
-plot(p2)
-ggsave("Shrub_Surv1819.jpeg", p2, width=6, height=5)
-
-
-#PLOT 3
-#plot of mean available substrate (litter) by seedling abundance in 2019
-ggplot(Cover_Surv, aes(x=Sub_mean, y=Abund19))+
-  geom_point()+
-  labs(x="% Available Substrate",
-       y="Number of Seedlings")+
-  theme_light()
-
-#PLOT 4
-#plot of 2019 seedling abundance by plot distance to entrance of valley
-
-#create plot
-p4 <- ggplot(Seed_Dist, aes(x=HQdist, y=Abund19))+
-  geom_point(color = "royalblue3", size=3)+
-  theme_classic()+
-  labs(x= "Distance to HBEF entrance (m)",
-       y = "Number of seedlings")+
-  theme(axis.title = element_text(size=16), 
-        axis.text = element_text(size=14))
-plot(p4)
-
-ggsave("Dist_Abund19.jpeg", p4, width=6, height=4)
-
-#PLOT 5
-#plot of seedling survival (18/19) at plot transect with distance to valley entrance
-#create plot
-p5 <- ggplot(Seed_Dist, aes(x=HQdist, y=Surv_18_19))+
-  geom_point(size=3)+
-  theme_classic()+
-  labs(x= "Distance to HBEF entrance (m)",
-       y = "Seedling survival (proportion)")+
-  theme(axis.title = element_text(size=16), 
-        axis.text = element_text(size=14)) 
-plot(p5)
-
-
-ggsave("Dist_Surv1819.jpeg", p5, width=6, height=4)
-
-##############################################################################
-##############################################################################
-#Compare light data measurements - densiometer and canopy photos
-
-##############################################################################################
-###############################################################################################
-## Data Cleaning
-
-#clean canopy photo dataset
-Can <- Can %>%
-  dplyr::select(Plot, Point, PerCnpyOpenTotal) %>%
-  mutate(Distance = substr(Point, start=2, stop=3))%>%
-  mutate(DistBin = findInterval(Distance, TransBins),
-         Point2 = Point, 
-         PlotPoint = paste(Plot, Point, sep="_")) %>% #add unique ID for point
-  separate(Point2, c("x", "TransDir"), sep = -1)%>%
-  mutate(PlotTransBin = paste(Plot, TransDir, DistBin, sep="_")) #add unique ID for bins
-  
-#subset smaller dataset for canopy photos
-Can_2 <- Can %>% 
-  dplyr::select(PlotTransBin, PerCnpyOpenTotal, PlotPoint)
-
-
-########################################################################
-## Compare canopy cover measures
-
-#make smaller Cover_Sub dataset with just densiometer canopy measure
-Cover_Sub_Bin2 <- Cover_Sub %>%
-  dplyr::select(PlotTransBin, CanopyCover, PlotPoint)
-
-#join the canopy photo and densiometer measures by point
-CanCover <- left_join(Can_2, Cover_Sub_Bin2, by = "PlotPoint")
-
-
 ##############################################################################
 #join new canopy_cover_substrate datasets (binned to 20m level) with survival
 
@@ -404,17 +321,39 @@ Cover_Surv2 <- Cover_Surv %>%
 Can_Cover_Surv <- left_join(Cover_Surv2, Can_2, by = "PlotTransBin")
 
 
-#PLOT 6
-#plot of canopy cover (photos) at 20m bins by % sdlg survival 2018-2019
-p6 <- ggplot(Can_Cover_Surv, aes(x=PerCnpyOpenTotal, y=Surv_18_19))+
-  geom_point()+
-  labs(x="Light Availability (%)",
-       y="Seedling Survival (proportion)")+
-  theme_classic()+
-  theme(axis.title = element_text(size=16), 
-        axis.text = element_text(size=14))
+#################################################################
+##################################################################
+#correlation tests
+#comparing Canopy Cover and Shrub Cover
+cor.test(Cover_Surv$CanCover_mean, Cover_Surv$ShrubCover_mean) #p-value <0.001
 
-plot(p6)
+#comparing Canopy Cover and Available substrate
+cor.test(Cover_Surv$CanCover_mean, Cover_Surv$Sub_mean) #p-value 0.2
+
+#comparing canopy cover to survival 
+cor.test(Cover_Surv$CanCover_mean, Cover_Surv$Surv_18_19) #p-value 0.2
+
+#comparing shrub cover to survival
+cor.test(Cover_Surv$ShrubCover_mean, Cover_Surv$Surv_18_19) #p-value 0.1
+
+#comparing available substrate to abundance
+cor.test(Cover_Surv$Sub_mean, Cover_Surv$Abund19) #p-value 0.49
+
+#comparing canopy cover photos and shrub cover
+cor.test(Can_Cover_Surv$ShrubCover_mean, Can_Cover_Surv$PerCnpyOpenTotal) #p-value 0.6
+
+# number of leaves and age in 2018
+cor.test(Seed$Lvs18, Seed$Age18) #correlated
+
+#canopy photos and seedling abundance in 2018
+cor.test(Can_Cover_Surv$PerCnpyOpenTotal, Can_Cover_Surv$Abund18)
+
+#canopy photos and shrub cover 
+cor.test(Can_Cover_Surv$PerCnpyOpenTotal, Can_Cover_Surv$ShrubCover_mean)
+
+# height in 2018 and age in 2018 
+cor.test(Seed$Hgt18, Seed$Age18) # very correlated
+
 
 #######################################################################################
 #######################################################################################
@@ -424,7 +363,7 @@ plot(p6)
 
 #model w/ densiometer canopy, shrub cover, and substrate 
 Mod1 <- glm(Surv_18_19 ~ CanCover_mean + ShrubCover_mean 
-              + Sub_mean, data = Cover_Surv, family=quasibinomial(logit))#generalized linear model with quasibinomial family
+            + Sub_mean, data = Cover_Surv, family=quasibinomial(logit))#generalized linear model with quasibinomial family
 summary(Mod1)# show model output
 
 #model w/ densiometer canopy and substrate 
@@ -460,6 +399,7 @@ summary(Mod7)
 Mod8 <- lm(Abund19 ~ HQdist, data = Seed_Dist)
 summary(Mod8) #significant p-value
 
+#model survival w/shrub cover, abundance, and canopy cover
 Mod9 <- glm(Surv_18_19 ~ ShrubCover_mean + Abund18 + PerCnpyOpenTotal, data=Can_Cover_Surv,
             family = quasibinomial(logit))
 summary(Mod9)
@@ -473,15 +413,15 @@ Seed$Hgt18 <- as.numeric(Seed$Hgt18)
 
 #make smaller dataset
 Seed2 <- Seed %>% 
-    dplyr::select(PlotTag, Age18, Hgt18, Stat18_19, Stat19test, Stat18test,
-                         Damage18, Lvs18) %>%
+  dplyr::select(PlotTag, Age18, Hgt18, Stat18_19, Stat19test, Stat18test,
+                Damage18, Lvs18) %>%
   filter(!is.na(Stat18_19))
 
 # initial model - Age, Height 18, Damage rating 18
 M1 <- glm(Stat18_19 ~ Age18 + Damage18 + Hgt18, data = Seed2, family="binomial")
 summary(M1)
 
-# model - Age, Leaf number 18, Damage rating 18
+# model 2 - Age, Leaf number 18, Damage rating 18
 M2 <- glm(Stat18_19 ~ Age18 + Damage18 + Lvs18, data = Seed2, family="binomial")
 summary(M2)
 
@@ -489,6 +429,7 @@ summary(M2)
 M3 <- glm(Stat18_19 ~ Age18 + as.factor(Damage18) + Lvs18, data = Seed2, family="binomial")
 summary(M3)
 stepAIC(M3) # check model fit
+#used this model in HB presentation - July 2020 + ESA pres - August 2020
 
 
 #Test model fit - compare single variable models
@@ -511,7 +452,7 @@ summary(M6)
 log_form <- y ~ 1 / (1 + exp(b * (x - a)))
 ##### age plot
 log_model <- nls(formula = log_form, data = list(x = Seed2$Age18, y = Seed2$Stat18_19), start = list(a = 2, b = 1),control=list(maxiter=500))
-
+cor(Seed2$Stat18_19, predict(log_model))
 coef(log_model)
 # add column with age predictions to dataset
 Seed2$predAge <- 1 / (1 + exp(coef(log_model)["b"] * (Seed2$Age18 - coef(log_model)["a"])))
@@ -523,15 +464,80 @@ coef(log_model_2)
 # add column with leaves predictions to dataset
 Seed2$predLvs <- 1 / (1 + exp(coef(log_model_2)["b"] * (Seed2$Lvs18 - coef(log_model_2)["a"])))
 
+##############################################################################################
+##############################################################################################
+## Plotting
 
+#PLOT 1 
+#plot of mean shrub cover at 20m bins by percent seedling survival 2018-2019
+p1 <- ggplot(Cover_Surv, aes(x=ShrubCover_mean, y=Surv_18_19))+
+  geom_point(size=3)+
+  labs(x="Shrub Cover (%)",
+       y="Seedling survival (proportion)")+
+  theme_classic()+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=14))
+plot(p1)
+#ggsave("Shrub_Surv1819.jpeg", p1, width=6, height=5)
+
+
+#PLOT 2
+#plot of mean available substrate (litter) by seedling abundance in 2019
+ggplot(Cover_Surv, aes(x=Sub_mean, y=Abund19))+
+  geom_point()+
+  labs(x="% Available Substrate",
+       y="Number of Seedlings")+
+  theme_light()
+
+#PLOT 3
+#plot of 2019 seedling abundance by plot distance to entrance of valley
+#create plot
+p3 <- ggplot(Seed_Dist, aes(x=HQdist, y=Abund19))+
+  geom_point(color = "royalblue3", size=3)+
+  theme_classic()+
+  labs(x= "Distance to HBEF entrance (m)",
+       y = "Number of seedlings")+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=14))
+plot(p3)
+
+#ggsave("Dist_Abund19.jpeg", p3, width=6, height=4)
+
+#PLOT 5
+#plot of seedling survival (18/19) at plot transect with distance to valley entrance
+#create plot
+p4 <- ggplot(Seed_Dist, aes(x=HQdist, y=Surv_18_19))+
+  geom_point(size=3)+
+  theme_classic()+
+  labs(x= "Distance to HBEF entrance (m)",
+       y = "Seedling survival (proportion)")+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=14)) 
+plot(p4)
+
+
+#ggsave("Dist_Surv1819.jpeg", p4, width=6, height=4)
+
+
+#PLOT 5
+#plot of canopy cover (photos) at 20m bins by % sdlg survival 2018-2019
+p5 <- ggplot(Can_Cover_Surv, aes(x=PerCnpyOpenTotal, y=Surv_18_19))+
+  geom_point()+
+  labs(x="Light Availability (%)",
+       y="Seedling Survival (proportion)")+
+  theme_classic()+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=14))
+
+plot(p5)
 
 
 #####################################################
 ## Plot Indiv Sdlg Survival by Characteristic variables 
 
-#Plot 7
+#Plot 6
 #plot age in 2018 by survival status
-p7 <- ggplot(Seed2, aes(x=Age18, y=Stat18_19))+
+p6 <- ggplot(Seed2, aes(x=Age18, y=Stat18_19))+
   scale_y_continuous(breaks=c(0, 0.5, 1.0))+
   geom_jitter( height=0.1, color="turquoise4")+
   theme_classic()+
@@ -539,14 +545,14 @@ p7 <- ggplot(Seed2, aes(x=Age18, y=Stat18_19))+
   labs(y="Survival", x="Age")+
   theme(axis.title = element_text(size=16), 
         axis.text = element_text(size=14))
-plot(p7)
+plot(p6)
 
 #save plot
-ggsave("Age_Surv1819.jpeg", p7, width=6, height=4)
+#ggsave("Age_Surv1819.jpeg", p6, width=6, height=4)
 
-#Plot 8
+#Plot 7
 #plot number of leaves by survival status
-p8 <- ggplot(Seed2, aes(x=Lvs18, y=Stat18_19))+
+p7<- ggplot(Seed2, aes(x=Lvs18, y=Stat18_19))+
   scale_y_continuous(breaks=c(0, 0.5, 1.0))+
   geom_jitter( height=0.1, color="turquoise4")+
   theme_classic()+
@@ -554,12 +560,12 @@ p8 <- ggplot(Seed2, aes(x=Lvs18, y=Stat18_19))+
   labs(y="Survival", x="Number of leaves")+
   theme(axis.title = element_text(size=16), 
         axis.text = element_text(size=14))
-plot(p8)
+plot(p7)
 
 # save plot
 #ggsave("LeafNum_Surv1819.jpeg", p8, width=6, height=4)
 
-#PLOT 9
+#PLOT 8
 # plot damage rating by sdlg survival proportion 2018/2019
 #create dataset to plot damage rating and survival 
 Damage <- Seed2 %>%
@@ -582,7 +588,7 @@ ggplot(Damage, aes(x=Damage18, y=Surv_18_19))+
 
 #plot damage by survival summarized to plot level
 ggplot(Seed_Bin3, aes(x=MeanDamage18, y=Surv_18_19))+
-   geom_point()
+  geom_point()
 
 #plot leaf number by survival summarized to plot level
 ggplot(Seed_Bin3, aes(x=MeanLvs18, y=Surv_18_19))+
@@ -592,65 +598,17 @@ ggplot(Seed_Bin3, aes(x=MeanLvs18, y=Surv_18_19))+
 ggplot(Seed_Bin3, aes(x=MeanAge, y=Surv_18_19))+
   geom_point()
 
-
 #plot abundance by survival summarized to 20m level
 ggplot(Can_Cover_Surv, aes(x=Abund18, y=Surv_18_19))+
   geom_point()
 
+#plot damage in 18 by survival status
 ggplot(Seed2, aes(x=Damage18, y=Stat18_19))+
   geom_jitter()
 
-################################################################
-# Show correlation between age and height
-#test correlations
-# height in 2018 and age in 2018 
-cor.test(Seed$Hgt18, Seed$Age18) # very correlated
-
-#filter outlier for height (110cm)
-Hgt <- Seed2 %>% filter(Hgt18 < 100)
-
-# height and age in 2018 (- outlier for Hgt)
-cor.test(Hgt$Hgt18, Hgt$Age18) #slightly less correlated
-
-#plot age by height - show correlation
-ggplot(Seed, aes(x=Hgt18, y=Stat18_19))+
-  geom_jitter()
-
-
 ##################################################################
 ##################################################################
-#correlation tests
-#comparing Canopy Cover and Shrub Cover
-cor.test(Cover_Surv$CanCover_mean, Cover_Surv$ShrubCover_mean) #p-value <0.001
-
-#comparing Canopy Cover and Available substrate
-cor.test(Cover_Surv$CanCover_mean, Cover_Surv$Sub_mean) #p-value 0.2
-
-#comparing canopy cover to survival 
-cor.test(Cover_Surv$CanCover_mean, Cover_Surv$Surv_18_19) #p-value 0.2
-
-#comparing shrub cover to survival
-cor.test(Cover_Surv$ShrubCover_mean, Cover_Surv$Surv_18_19) #p-value 0.1
-
-#comparing available substrate to abundance
-cor.test(Cover_Surv$Sub_mean, Cover_Surv$Abund19) #p-value 0.49
-
-#comparing canopy cover photos and shrub cover
-cor.test(Can_Cover_Surv$ShrubCover_mean, Can_Cover_Surv$PerCnpyOpenTotal) #p-value 0.6
-
-# number of leaves and age in 2018
-cor.test(Seed$Lvs18, Seed$Age18) #correlated
-
-#canopy photos and seedling abundance in 2018
-cor.test(Can_Cover_Surv$PerCnpyOpenTotal, Can_Cover_Surv$Abund18)
-
-#canopy photos and shrub cover 
-cor.test(Can_Cover_Surv$PerCnpyOpenTotal, Can_Cover_Surv$ShrubCover_mean)
-plot(Can_Cover_Surv$PerCnpyOpenTotal, Can_Cover_Surv$ShrubCover_mean)
-
-
-##################################################################
-##################################################################
+###### Test Plots
 ### Bar plots for Lvs and Age
 table(is.na(Lvs$Lvs18))
 
@@ -667,14 +625,14 @@ ggplot(Lvs, aes(x=Lvs18, y=Surv_18_19))+
 
 #create data subset for Age
 Age <- Seed2 %>%
-  filter(Stat18test==1, Age!=0)%>%
-  group_by(Age) %>%
+  filter(Stat18test==1, Age18!=0)%>%
+  group_by(Age18) %>%
   summarize(Surv_18_19 = sum(Stat19test, na.rm=TRUE)/sum(Stat18test, na.rm=TRUE))
 
 table(Seed2$Age)
 
 #plot age by proportion survival 2018/2019
-ggplot(Age, aes(x=Age, y=Surv_18_19))+
+ggplot(Age, aes(x=Age18, y=Surv_18_19))+
   geom_bar(stat="Identity")+
   coord_cartesian(xlim=c(0,20))+
   labs(x="Age (years)", y="Seedling Survival (proportion")+
@@ -683,33 +641,3 @@ ggplot(Age, aes(x=Age, y=Surv_18_19))+
 #plot age by sdlg abundance
 ggplot(Seed2, aes(x=Age18, y=Stat18_19))+
   geom_bar(stat="Identity")
-
-
-###############################################################################
-##################################################################################
-###Basal Area Prism data
-
-#summarize all the tree abundances by species
-Prism_Bin <- Prism %>%
-  summarise(TSCA = sum(TSCA, na.rm=TRUE),
-            FAGR = sum(FAGR, na.rm=TRUE),
-            ACRU = sum(ACRU, na.rm=TRUE),
-            BEAL = sum(BEAL, na.rm=TRUE),
-            PIRU = sum(PIRU, na.rm=TRUE),
-            BEPA = sum(BEPA, na.rm=TRUE),
-            FRAM = sum(FRAM, na.rm=TRUE),
-            ACSA = sum(ACSA, na.rm=TRUE),
-            PIST = sum(PIST, na.rm=TRUE),
-            ACSP = sum(ACSP, na.rm=TRUE),
-            ACPE = sum(ACPE, na.rm=TRUE),
-            POGR = sum(POGR, na.rm=TRUE))
-
-#reshape the dataframe
-Prism_Bin <-gather(Prism_Bin, `TSCA`, `FAGR`, `ACRU`,`BEAL`,
-                   `PIRU`, `BEPA`, `FRAM`, `ACSA`, `PIST`, `ACSP`,
-                   `ACPE`, `POGR`,
-                   key = "Species", value = "Abund")
-
-#plot of total abundances of mature tree species
-ggplot(Prism_Bin, aes(x=reorder(Species, -Abund), y=Abund))+
-  geom_bar(stat="identity")
