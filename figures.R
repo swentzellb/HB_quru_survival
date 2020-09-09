@@ -255,6 +255,85 @@ Cover_Sub_Bin <- Cover_Sub %>%
             Sub_mean = mean(Litter, na.rm=TRUE))%>%
   mutate(PlotTransBin = paste(PlotTrans, DistBin, sep = "_"))
 
+# summarize Leaf litter to 20m bins
+Litter_Bin <- Litter %>%
+  group_by(PlotTag, PlotTrans, DistBin)%>%
+  summarize(Plottotal= sum(Total, na.rm=TRUE), #total number of leaves for plot
+            ACRUsum = sum(ACRU, na.rm=TRUE), # sum of leaves by species for plot
+            ACRUper = ACRUsum/Plottotal,     # percentage of leaves by species for plot
+            FAGRsum = sum(FAGR, na.rm=TRUE),
+            FAGRper = FAGRsum/Plottotal,
+            BEALsum = sum(BEAL, na.rm=TRUE),
+            BEALper = BEALsum/Plottotal,
+            ACSAsum = sum(ACSA, na.rm=TRUE),
+            ACSAper = ACSAsum/Plottotal,
+            ACPEsum = sum(ACPE, na.rm=TRUE),
+            ACPEper = ACPEsum/Plottotal,
+            BEPAsum = sum(BEPA, na.rm=TRUE),
+            BEPAper = BEPAsum/Plottotal,
+            FRAMsum = sum(FRAM, na.rm=TRUE),
+            FRAMper = FRAMsum/Plottotal,
+            POGRsum = sum(POGR, na.rm=TRUE),
+            POGRper = POGRsum/Plottotal,
+            VIALsum = sum(VIAL, na.rm=TRUE),
+            VIALper = VIALsum/Plottotal)%>%
+  mutate(PlotTransBin = paste(PlotTrans, DistBin, sep = "_"))  #add 20m bin identifier
+
+#############################################################################
+#############################################################################
+#### Basal Area Prism data
+
+# summarize Basal Area prism data: mature tree community to 20m bins
+Prism_Bin <- Prism %>%
+  group_by(PlotTransBin)%>%
+  summarize(Plottotal = sum(Total),              # total number of trees per plot
+            TSCAsum = sum(TSCA, na.rm=TRUE),     # number of trees by species per plot
+            FAGRsum = sum(FAGR, na.rm=TRUE),
+            ACRUsum = sum(ACRU, na.rm=TRUE),
+            BEALsum = sum(BEAL, na.rm=TRUE),
+            PIRUsum = sum(PIRU, na.rm=TRUE),
+            BEPAsum = sum(BEPA, na.rm=TRUE),
+            FRAMsum = sum(FRAM, na.rm=TRUE),
+            ACSAsum = sum(ACSA, na.rm=TRUE),
+            PISTsum = sum(PIST, na.rm=TRUE),
+            ACSPsum = sum(ACSP, na.rm=TRUE),
+            ACPEsum = sum(ACPE, na.rm=TRUE),
+            POGRsum = sum(POGR, na.rm=TRUE), 
+            TSCAper = TSCAsum/Plottotal,        # percentage of species per plot
+            FAGRper = FAGRsum/Plottotal,
+            ACRUper = ACRUsum/Plottotal,
+            BEALper = BEALsum/Plottotal,
+            PIRUper = PIRUsum/Plottotal,
+            BEPAper = BEPAsum/Plottotal,
+            FRAMper = FRAMsum/Plottotal,
+            ACSAper = ACSAsum/Plottotal,
+            PISTper = PISTsum/Plottotal,
+            ACSPper = ACSPsum/Plottotal,
+            ACPEper = ACPEsum/Plottotal,
+            POGRper = POGR, na.rm=TRUE)
+
+
+#summarize all the total tree abundances by species
+Prism_Abund <- Prism %>%
+  summarise(TSCA = sum(TSCA, na.rm=TRUE),
+            FAGR = sum(FAGR, na.rm=TRUE),
+            ACRU = sum(ACRU, na.rm=TRUE),
+            BEAL = sum(BEAL, na.rm=TRUE),
+            PIRU = sum(PIRU, na.rm=TRUE),
+            BEPA = sum(BEPA, na.rm=TRUE),
+            FRAM = sum(FRAM, na.rm=TRUE),
+            ACSA = sum(ACSA, na.rm=TRUE),
+            PIST = sum(PIST, na.rm=TRUE),
+            ACSP = sum(ACSP, na.rm=TRUE),
+            ACPE = sum(ACPE, na.rm=TRUE),
+            POGR = sum(POGR, na.rm=TRUE))
+
+#reshape the dataframe
+Prism_Abund <-gather(Prism_Abund, `TSCA`, `FAGR`, `ACRU`,`BEAL`,
+                     `PIRU`, `BEPA`, `FRAM`, `ACSA`, `PIST`, `ACSP`,
+                     `ACPE`, `POGR`,
+                     key = "Species", value = "Abund")
+
 
 #################################################################################
 #################################################################################
@@ -641,3 +720,7 @@ ggplot(Age, aes(x=Age18, y=Surv_18_19))+
 #plot age by sdlg abundance
 ggplot(Seed2, aes(x=Age18, y=Stat18_19))+
   geom_bar(stat="Identity")
+
+#plot of total abundances of mature tree species - BA Prism data
+ggplot(Prism_Abund, aes(x=reorder(Species, -Abund), y=Abund))+
+  geom_bar(stat="identity")
