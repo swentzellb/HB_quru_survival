@@ -721,6 +721,10 @@ ggplot(Age, aes(x=Age18, y=Surv_18_19))+
 ggplot(Seed2, aes(x=Age18, y=Stat18_19))+
   geom_bar(stat="Identity")
 
+
+########################################################################3
+#########################################################################
+### Plots using Basal Area Prism data
 #plot of total abundances of mature tree species - BA Prism data
 ggplot(Prism_Abund, aes(x=reorder(Species, -Abund), y=Abund))+
   geom_bar(stat="identity")

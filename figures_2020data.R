@@ -21,7 +21,7 @@ library(ggplot2)
 setwd("~/Thesis/HB_quru_survival/data")
 
 #read in csv files
-Seed <- read.csv("HB_VW_Oak_Trans_Survival_2020_CLEAN.csv") 
+Seed <- read.csv("HB_VW_Oak_Trans_Survival_2020_CLEAN.csv", header=TRUE,  fileEncoding = "UTF-8-BOM") # file encoding fixes the strange symbol added in column title
 Seed$VW <- paste0("p", Seed$VW) # add p to beginning of VW column (same as PlotTag)
 # historical survival data
 Litter <- read.csv("HB_VW_Oak_Trans_Enviro_Litter_CLEAN.csv") 
