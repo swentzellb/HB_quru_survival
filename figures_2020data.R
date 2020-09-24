@@ -171,6 +171,25 @@ Seed$Stat19test <- as.numeric(Seed$Stat19test)
 #check correct arrangement - should be 852=0
 table(Seed$Stat19test)
 
+##################################################################
+## # same for survival between 2019 and 2020
+##################################################################
+
+# create test variables equal to seedling status variables for each yr
+Seed$Stat20test <- Seed$Stat20
+
+# change PD and NAs in 2020 column to 0
+Seed$Stat20test[Seed$Stat20=="PD"| Seed$Stat20=="NF"|Seed$Stat20=="nf"|is.na(Seed$Stat20test)] <- 0
+
+#check all NAs have been removed
+table(is.na(Seed$Stat20test))
+
+# change class to numeric
+Seed$Stat20test <- as.numeric(Seed$Stat20test)
+
+#check correct arrangement - should be 
+table(Seed$Stat20test)
+
 #############################################################################
 # individual seedling survival status from 2018 to 2019
 #############################################################################
@@ -182,6 +201,32 @@ Seed$Stat18_19 <- Seed$Stat19test
 Seed$Stat18_19[Seed$Stat18test==0]<- NA
 
 table(is.na(Seed$Stat18_19)) #should be 654 false
+
+# add another column to Seed dataset equal to stat19
+Seed$Stat19_20 <- Seed$Stat20test
+
+# removes seedlings that were not present in 2018 (set to NA)
+Seed$Stat19_20[Seed$Stat19test==0]<- NA
+
+table(is.na(Seed$Stat19_20)) 
+
+##############################
+################################
+## Find total survival between 2019 and 2020
+Surv_19_20 <- Seed %>%
+  filter(Stat19test==1) %>% #filter to only those seedlings alive in 2019 - this removes new seedlings from 2020
+  summarize(Surv_18_19 = sum(Stat20test==1, na.rm=TRUE) #sum all live seedlings in 2020
+            /sum(Stat19test==1, na.rm=TRUE), # divide by all live seedlings from 2019
+            Count19 = sum(Stat19test==1),
+            Count20 = sum(Stat20test==1)) # add column for count of live seedlings at plot in 2020
+
+
+Surv_18_19 <- Seed %>%
+  filter(Stat18test==1) %>% #filter to only those seedlings alive in 2018 - this removes new seedlings from 2019
+  summarize(Surv_18_19 = sum(Stat19test==1, na.rm=TRUE) #sum all live seedlings in 2019
+            /sum(Stat18test==1, na.rm=TRUE), # divide by all live seedlings from 2018
+            Count18 = sum(Stat18test==1),
+            Count19 = sum(Stat19test==1)) # add column for count of live seedlings at plot in 2019
 
 
 ##############################################################################################
