@@ -61,10 +61,19 @@ Seed2 <- Seed2 %>% separate(Distance, c("PointType", "Distance"), sep = 1)
 Seed$Stat19test <- Seed$Stat19
 Seed$Stat18test <- Seed$Stat18
 Seed$Stat17test <- Seed$Stat17
+Seed$Stat16test <- Seed$Stat16
+Seed$Stat15test <- Seed$Stat15
 
 Seed2$Stat19test <- Seed2$Stat19
 Seed2$Stat18test <- Seed2$Stat18
 Seed2$Stat17test <- Seed2$Stat17
+Seed2$Stat16test <- Seed2$Stat16
+Seed2$Stat15test <- Seed2$Stat15
+Seed2$Stat14test <- Seed2$Stat14
+Seed2$Stat13test <- Seed2$Stat13
+Seed2$Stat12test <- Seed2$Stat12
+Seed2$Stat11test <- Seed2$Stat11
+
 
 # change PD and NAs in 2019 column to 0
 Seed$Stat19test[Seed$Stat19=="PD"| is.na(Seed$Stat19)] <- 0
@@ -75,6 +84,22 @@ Seed$Stat18test[Seed$Stat18=="PD" | is.na(Seed$Stat18)] <- 0
 # change PD and NAs in 2017 column to 0
 Seed$Stat17test[Seed$Stat17=="PD" | is.na(Seed$Stat17)] <- 0 
 
+# change PD and NAs in 2016 column to 0
+Seed$Stat16test[Seed$Stat16=="PD" |Seed$Stat16=="NF" |is.na(Seed$Stat16)] <- 0 
+
+# change PD and NAs in 2015 column to 0
+Seed$Stat16test[Seed$Stat16=="PD" |Seed$Stat16=="NF" |is.na(Seed$Stat16)] <- 0 
+
+# change PD and NAs in 2014 column to 0
+Seed$Stat16test[Seed$Stat16=="PD" |Seed$Stat16=="NF" |is.na(Seed$Stat16)] <- 0 
+
+# change PD and NAs in 2013 column to 0
+Seed$Stat16test[Seed$Stat16=="PD" |Seed$Stat16=="NF" |is.na(Seed$Stat16)] <- 0 
+
+# change PD and NAs in 2012 column to 0
+Seed$Stat16test[Seed$Stat16=="PD" |Seed$Stat16=="NF" |is.na(Seed$Stat16)] <- 0 
+
+
 # change PD and NAs in 2019 column to 0
 Seed2$Stat19test[Seed2$Stat19=="PD"| is.na(Seed2$Stat19)] <- 0
 
@@ -84,18 +109,41 @@ Seed2$Stat18test[Seed2$Stat18=="PD" | is.na(Seed2$Stat18)] <- 0
 # change PD and NAs in 2017 column to 0
 Seed2$Stat17test[Seed2$Stat17=="PD" | is.na(Seed2$Stat17)] <- 0 
 
+# change PD and NAs in 2016 column to 0
+Seed2$Stat16test[Seed2$Stat16=="PD"|Seed2$Stat16=="NF" |is.na(Seed2$Stat16)] <- 0 
+
+# change PD and NAs in 2015 column to 0
+Seed2$Stat15test[Seed2$Stat15=="PD" |Seed2$Stat15=="NF" |is.na(Seed2$Stat15)] <- 0 
+
+# change PD and NAs in 2014 column to 0
+Seed2$Stat14test[Seed2$Stat14=="PD" |Seed2$Stat14=="NF" |is.na(Seed2$Stat14)] <- 0 
+
+# change PD and NAs in 2013 column to 0
+Seed2$Stat13test[Seed2$Stat13=="PD" |Seed2$Stat13=="NF" |is.na(Seed2$Stat13)] <- 0 
+
+# change PD and NAs in 2012 column to 0
+Seed2$Stat12test[Seed2$Stat12=="PD" |Seed2$Stat12=="NF" |is.na(Seed2$Stat13)] <- 0 
+
+
+
 #check all NAs have been removed
 table(is.na(Seed$Stat17test))
-table(Seed$Stat17test)
+table(Seed$Stat16test)
 
 #check all NAs have been removed
 table(is.na(Seed2$Stat17test))
-table(Seed2$Stat17test)
+table(Seed2$Stat16test)
 
 #change to numeric variables
 Seed2$Stat19test <- as.numeric(as.character(Seed2$Stat19test))
 Seed2$Stat18test <- as.numeric(as.character(Seed2$Stat18test))
 Seed2$Stat17test <- as.numeric(as.character(Seed2$Stat17test))
+Seed2$Stat16test <- as.numeric(as.character(Seed2$Stat16test))
+Seed2$Stat15test <- as.numeric(as.character(Seed2$Stat15test))
+Seed2$Stat14test <- as.numeric(as.character(Seed2$Stat14test))
+Seed2$Stat13test <- as.numeric(as.character(Seed2$Stat13test))
+Seed2$Stat12test <- as.numeric(as.character(Seed2$Stat12test))
+
 
 #change to numeric variables
 Seed$Stat19test <- as.numeric(as.character(Seed$Stat19test))
@@ -117,6 +165,15 @@ Surv2_18_19 <- Seed2 %>%
             /sum(Stat18test==1, na.rm=TRUE), # divide by all live seedlings from 2018
             Count18 = sum(Stat18test==1),
             Count19 = sum(Stat19test==1)) # add column for count of live seedlings at plot in 2019
+
+#Calculate survival between 2018 and 2019 across all VW plots
+Surv2_17_18 <- Seed2 %>%
+  filter(Stat17test==1) %>% #filter to only those seedlings alive in 2017 - this removes new seedlings from 2018
+  summarize(Surv_17_18 = sum(Stat18test==1, na.rm=TRUE) #sum all live seedlings in 2018
+            /sum(Stat17test==1, na.rm=TRUE), # divide by all live seedlings from 2017
+            Count17 = sum(Stat17test==1),
+            Count18 = sum(Stat18test==1)) # add column for count of live seedlings at plot in 2018
+
 
 #Calculate survival between 2017 and 2019 across all VW plots
 Surv_17_19 <- Seed %>%
