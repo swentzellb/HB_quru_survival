@@ -64,6 +64,7 @@ Seed$Stat17test <- Seed$Stat17
 Seed$Stat16test <- Seed$Stat16
 Seed$Stat15test <- Seed$Stat15
 
+Seed2$Stat20test <- Seed2$Stat20
 Seed2$Stat19test <- Seed2$Stat19
 Seed2$Stat18test <- Seed2$Stat18
 Seed2$Stat17test <- Seed2$Stat17
