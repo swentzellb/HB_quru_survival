@@ -4,6 +4,7 @@
 # Initial Hubbard Brook historical Red Oak seedling survival and health data (2011-2019)
 # UPDATED Sept 8, 2020
 # Thesis data analysis - QURU sdlg survival at Hubbard Brook valley wide plots 
+# calculations for ESA poster summer 2020
 
 #load packages
 library(tidyverse)
@@ -48,7 +49,8 @@ Seed <- Seed %>% separate(Distance, c("PointType", "Distance"), sep = 1)
 
 #################################################################
 #################################################################
-# Calculate Survival between 2018 and 2019
+# Calculate Survival between 2017, 2018 and 2019
+# for comparison to Harvard Forest data
 #################################################################
 
 # create test variables equal to seedling status variables for each yr
@@ -100,6 +102,20 @@ Surv_17_19_hem <- Seed %>%
           /sum(Stat17test==1, na.rm=TRUE),
           Count17 = sum(Stat17test==1),
           Count19 = sum(Stat19test==1))
+
+#Calculate survival between 2017 and 2018 across all VW plots
+Surv_17_18 <- Seed %>%
+  filter(Stat17test==1) %>% #filter to only those seedlings alive in 2017 - this removes new seedlings from 2018
+  summarize(Surv_17_18 = sum(Stat18test==1, na.rm=TRUE) #sum all live seedlings in 2018
+            /sum(Stat17test==1, na.rm=TRUE), # divide by all live seedlings from 2017
+            Count17 = sum(Stat17test==1),
+            Count18 = sum(Stat18test==1)) # add column for count of live seedlings at plot in 2018
+
+
+
+
+
+
 ########################################################################################################
 ########################################################################################################
 #Binning
