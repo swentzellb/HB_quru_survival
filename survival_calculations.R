@@ -19,17 +19,13 @@ library(lme4)
 setwd("~/Thesis/HB_quru_survival/data")
 
 #read in csv files
-Seed <- read_csv("HB_VW_Oak_Trans_Survival_CLEAN.csv") 
+Seed <- read_csv("HB_VW_Oak_Trans_Survival_2020_CLEAN.csv") #updated sdlg spreadsheet w/2020 data
 Seed$VW <- paste0("p", Seed$VW) # add p to beginning of VW column
-Seed2 <- read_csv("HB_VW_Oak_Trans_Survival_2020_CLEAN.csv") #updated sdlg spreadsheet w/2020 data
-Seed2$VW <- paste0("p", Seed2$VW) # add p to beginning of VW column
 PlotCoord <- read.csv("Plot_Table_Basic.csv")
 
-#summarize the data
-summary(Seed)
-
+summary(Seed) #summarize the data
 table(is.na(Seed$Stat19)) # determine how many NAs are present
-table(is.na(Seed2$Stat19)) # determine how many NAs are present
+
 #########################################################################
 # Data Cleaning
 #add PlotTag column to seed dataset to match coordinate dataset
@@ -38,19 +34,15 @@ Seed$PlotTag <- Seed$VW
 #separate into Point and Plot Direction - N/S columns
 #PlotDir = Plot Direction - N/S of transect line
 Seed <- Seed %>% separate(Point, c("Point", "PlotDir"), sep="_")
-Seed2 <- Seed2 %>% separate(Point, c("Point", "PlotDir"), sep="_")
 
 #separate into Distance along transect and Transect Direction - E/W columns
 #by taking the last character in the string
 #Distance - along transect line
 #TransDir - Transect Direction to the East or West
 Seed <- Seed %>% separate(Point, c("Distance", "TransDir"), sep = -1)
-Seed2 <- Seed %>% separate(Point, c("Distance", "TransDir"), sep = -1)
 
 #separate and remove point type, plot off transect or on center line of transect, from distance along transect
 Seed <- Seed %>% separate(Distance, c("PointType", "Distance"), sep = 1)
-Seed2 <- Seed2 %>% separate(Distance, c("PointType", "Distance"), sep = 1)
-#View(Seed)
 
 #################################################################
 #################################################################
@@ -58,23 +50,19 @@ Seed2 <- Seed2 %>% separate(Distance, c("PointType", "Distance"), sep = 1)
 #################################################################
 
 # create test variables equal to seedling status variables for each yr
+Seed$Stat20test <- Seed$Stat20
 Seed$Stat19test <- Seed$Stat19
 Seed$Stat18test <- Seed$Stat18
 Seed$Stat17test <- Seed$Stat17
 Seed$Stat16test <- Seed$Stat16
 Seed$Stat15test <- Seed$Stat15
+Seed$Stat14test <- Seed$Stat14
+Seed$Stat13test <- Seed$Stat13
+Seed$Stat12test <- Seed$Stat12
+Seed$Stat11test <- Seed$Stat11
 
-Seed2$Stat20test <- Seed2$Stat20
-Seed2$Stat19test <- Seed2$Stat19
-Seed2$Stat18test <- Seed2$Stat18
-Seed2$Stat17test <- Seed2$Stat17
-Seed2$Stat16test <- Seed2$Stat16
-Seed2$Stat15test <- Seed2$Stat15
-Seed2$Stat14test <- Seed2$Stat14
-Seed2$Stat13test <- Seed2$Stat13
-Seed2$Stat12test <- Seed2$Stat12
-Seed2$Stat11test <- Seed2$Stat11
-
+#change PD and NAs in 2020 column to 0 
+Seed$Stat20test[Seed$Stat20=="PD"| is.na(Seed$Stat20)] <- 0
 
 # change PD and NAs in 2019 column to 0
 Seed$Stat19test[Seed$Stat19=="PD"| is.na(Seed$Stat19)] <- 0
@@ -89,67 +77,113 @@ Seed$Stat17test[Seed$Stat17=="PD" | is.na(Seed$Stat17)] <- 0
 Seed$Stat16test[Seed$Stat16=="PD" |Seed$Stat16=="NF" |is.na(Seed$Stat16)] <- 0 
 
 # change PD and NAs in 2015 column to 0
-Seed$Stat16test[Seed$Stat16=="PD" |Seed$Stat16=="NF" |is.na(Seed$Stat16)] <- 0 
+Seed$Stat15test[Seed$Stat15=="PD" |Seed$Stat15=="NF" |is.na(Seed$Stat15)] <- 0 
 
 # change PD and NAs in 2014 column to 0
-Seed$Stat16test[Seed$Stat16=="PD" |Seed$Stat16=="NF" |is.na(Seed$Stat16)] <- 0 
+Seed$Stat14test[Seed$Stat14=="PD" |Seed$Stat14=="NF" |is.na(Seed$Stat14)] <- 0 
 
 # change PD and NAs in 2013 column to 0
-Seed$Stat16test[Seed$Stat16=="PD" |Seed$Stat16=="NF" |is.na(Seed$Stat16)] <- 0 
+Seed$Stat13test[Seed$Stat13=="PD" |Seed$Stat13=="NF" |is.na(Seed$Stat13)] <- 0 
 
 # change PD and NAs in 2012 column to 0
-Seed$Stat16test[Seed$Stat16=="PD" |Seed$Stat16=="NF" |is.na(Seed$Stat16)] <- 0 
-
-
-# change PD and NAs in 2019 column to 0
-Seed2$Stat19test[Seed2$Stat19=="PD"| is.na(Seed2$Stat19)] <- 0
-
-# change PD and NAs in 2018 column to 0
-Seed2$Stat18test[Seed2$Stat18=="PD" | is.na(Seed2$Stat18)] <- 0 
-
-# change PD and NAs in 2017 column to 0
-Seed2$Stat17test[Seed2$Stat17=="PD" | is.na(Seed2$Stat17)] <- 0 
-
-# change PD and NAs in 2016 column to 0
-Seed2$Stat16test[Seed2$Stat16=="PD"|Seed2$Stat16=="NF" |is.na(Seed2$Stat16)] <- 0 
-
-# change PD and NAs in 2015 column to 0
-Seed2$Stat15test[Seed2$Stat15=="PD" |Seed2$Stat15=="NF" |is.na(Seed2$Stat15)] <- 0 
-
-# change PD and NAs in 2014 column to 0
-Seed2$Stat14test[Seed2$Stat14=="PD" |Seed2$Stat14=="NF" |is.na(Seed2$Stat14)] <- 0 
-
-# change PD and NAs in 2013 column to 0
-Seed2$Stat13test[Seed2$Stat13=="PD" |Seed2$Stat13=="NF" |is.na(Seed2$Stat13)] <- 0 
-
-# change PD and NAs in 2012 column to 0
-Seed2$Stat12test[Seed2$Stat12=="PD" |Seed2$Stat12=="NF" |is.na(Seed2$Stat13)] <- 0 
-
+Seed$Stat12test[Seed$Stat12=="PD" |Seed$Stat12=="NF" |is.na(Seed$Stat13)] <- 0 
 
 
 #check all NAs have been removed
 table(is.na(Seed$Stat17test))
 table(Seed$Stat16test)
-
-#check all NAs have been removed
-table(is.na(Seed2$Stat17test))
-table(Seed2$Stat16test)
+table(is.na(Seed$Stat18test))
+table(Seed$Stat13test)
 
 #change to numeric variables
-Seed2$Stat19test <- as.numeric(as.character(Seed2$Stat19test))
-Seed2$Stat18test <- as.numeric(as.character(Seed2$Stat18test))
-Seed2$Stat17test <- as.numeric(as.character(Seed2$Stat17test))
-Seed2$Stat16test <- as.numeric(as.character(Seed2$Stat16test))
-Seed2$Stat15test <- as.numeric(as.character(Seed2$Stat15test))
-Seed2$Stat14test <- as.numeric(as.character(Seed2$Stat14test))
-Seed2$Stat13test <- as.numeric(as.character(Seed2$Stat13test))
-Seed2$Stat12test <- as.numeric(as.character(Seed2$Stat12test))
-
-
-#change to numeric variables
+Seed$Stat20test <- as.numeric(as.character(Seed$Stat20test))
 Seed$Stat19test <- as.numeric(as.character(Seed$Stat19test))
 Seed$Stat18test <- as.numeric(as.character(Seed$Stat18test))
 Seed$Stat17test <- as.numeric(as.character(Seed$Stat17test))
+Seed$Stat16test <- as.numeric(as.character(Seed$Stat16test))
+Seed$Stat15test <- as.numeric(as.character(Seed$Stat15test))
+Seed$Stat14test <- as.numeric(as.character(Seed$Stat14test))
+Seed$Stat13test <- as.numeric(as.character(Seed$Stat13test))
+Seed$Stat12test <- as.numeric(as.character(Seed$Stat12test))
+
+Seed$Lvs20 <- as.numeric(as.character(Seed$Lvs20))
+Seed$Lvs19 <- as.numeric(as.character(Seed$Lvs19))
+Seed$Lvs18 <- as.numeric(as.character(Seed$Lvs18))
+Seed$Lvs17 <- as.numeric(as.character(Seed$Lvs17))
+Seed$Lvs16 <- as.numeric(as.character(Seed$Lvs16))
+Seed$Lvs15 <- as.numeric(as.character(Seed$Lvs15))
+Seed$Lvs14 <- as.numeric(as.character(Seed$Lvs14))
+Seed$Lvs13 <- as.numeric(as.character(Seed$Lvs13))
+Seed$Lvs12 <- as.numeric(as.character(Seed$Lvs12))
+
+#create transition survival variables
+Seed$Surv20 <- Seed$Stat20test
+Seed$Surv19 <- Seed$Stat19test
+Seed$Surv18 <- Seed$Stat18test
+Seed$Surv17 <- Seed$Stat17test
+Seed$Surv16 <- Seed$Stat16test
+Seed$Surv15 <- Seed$Stat15test
+Seed$Surv14 <- Seed$Stat14test
+Seed$Surv13 <- Seed$Stat13test
+Seed$Surv12 <- Seed$Stat12test
+
+#remove new seedlings in the second year
+Seed$Surv20[Seed$Stat19test==0] <- 0
+Seed$Surv19[Seed$Stat18test==0] <- 0
+Seed$Surv18[Seed$Stat17test==0] <- 0
+Seed$Surv17[Seed$Stat16test==0] <- 0
+Seed$Surv16[Seed$Stat15test==0] <- 0
+Seed$Surv15[Seed$Stat14test==0] <- 0
+Seed$Surv14[Seed$Stat13test==0] <- 0
+Seed$Surv13[Seed$Stat12test==0] <- 0
+
+
+#Seed$Surv12[Seed$Stat11test==0] <- 0
+
+#check new variables
+table(Seed$Surv17)
+table(Seed$Stat17test)
+table(Seed$Stat16test)
+table(Seed$Stat20)
+
+#Create a smaller dataset
+Seed2 <- Seed %>%
+  mutate(Sdlg = paste(VW, SdlgNum, sep="_")) %>%
+  dplyr::select(Sdlg, Surv20, Surv19, Surv18, Surv17, Surv16, Surv15,
+         Surv14, Surv13, Lvs20, Lvs19, Lvs18, Lvs17, Lvs16, Lvs15, 
+         Lvs14, Lvs13, Lvs12, Damage20, Damage19, Damage18, Damage17,
+         Damage16, Damage15)
+
+
+#transform the table with pivot_longer
+Seed2 %>%
+  pivot_longer(Surv20:Damage15,
+               names_to = "interval",
+               names_pattern = "\*(\d{2})",
+               values_to = c("Survival", "Leaves", "Damage")
+  ) # returns an error: '\*' is an unrecognized escape in character string starting ""\*"
+
+#this sort of works? it returns a table at least 
+#something is definitely still off though
+# copied from the tidyr example
+Seed2 %>% 
+ pivot_longer(Surv20:Damage15,
+                names_to = c(".value", "set"),
+                names_pattern = "(.)(.)",
+                values_to = c("Survival", "Leaves", "Damage")
+   )
+
+
+
+
+
+
+
+
+
+
+
+
 
 #Calculate survival between 2018 and 2019 across all VW plots
 Surv_18_19 <- Seed %>%
@@ -159,33 +193,16 @@ Surv_18_19 <- Seed %>%
             Count18 = sum(Stat18test==1),
             Count19 = sum(Stat19test==1)) # add column for count of live seedlings at plot in 2019
 
-#Calculate survival between 2018 and 2019 across all VW plots
-Surv2_18_19 <- Seed2 %>%
-  filter(Stat18test==1) %>% #filter to only those seedlings alive in 2018 - this removes new seedlings from 2019
-  summarize(Surv_18_19 = sum(Stat19test==1, na.rm=TRUE) #sum all live seedlings in 2019
-            /sum(Stat18test==1, na.rm=TRUE), # divide by all live seedlings from 2018
-            Count18 = sum(Stat18test==1),
-            Count19 = sum(Stat19test==1)) # add column for count of live seedlings at plot in 2019
-
-#Calculate survival between 2018 and 2019 across all VW plots
-Surv2_17_18 <- Seed2 %>%
+#Calculate survival between 2017 and 2018 across all VW plots
+Surv_17_18 <- Seed %>%
   filter(Stat17test==1) %>% #filter to only those seedlings alive in 2017 - this removes new seedlings from 2018
   summarize(Surv_17_18 = sum(Stat18test==1, na.rm=TRUE) #sum all live seedlings in 2018
             /sum(Stat17test==1, na.rm=TRUE), # divide by all live seedlings from 2017
             Count17 = sum(Stat17test==1),
             Count18 = sum(Stat18test==1)) # add column for count of live seedlings at plot in 2018
 
-
 #Calculate survival between 2017 and 2019 across all VW plots
 Surv_17_19 <- Seed %>%
-  filter(Stat17test==1) %>% #filter to only those seedlings alive in 2017 - this removes new seedlings from 2018 and 19
-  summarize(Surv_17_19 = sum(Stat19test==1, na.rm=TRUE) #sum all live seedlings in 2019
-            /sum(Stat17test==1, na.rm=TRUE), # divide by all live seedlings from 2017
-            Count17 = sum(Stat17test==1),
-            Count19 = sum(Stat19test==1)) # add column for count of live seedlings at plot in 2019
-
-#Calculate survival between 2017 and 2019 across all VW plots
-Surv2_17_19 <- Seed2 %>%
   filter(Stat17test==1) %>% #filter to only those seedlings alive in 2017 - this removes new seedlings from 2018 and 19
   summarize(Surv_17_19 = sum(Stat19test==1, na.rm=TRUE) #sum all live seedlings in 2019
             /sum(Stat17test==1, na.rm=TRUE), # divide by all live seedlings from 2017
@@ -201,6 +218,8 @@ Surv_17_19_hem <- Seed %>%
           /sum(Stat17test==1, na.rm=TRUE),
           Count17 = sum(Stat17test==1),
           Count19 = sum(Stat19test==1))
+
+
 ########################################################################################################
 ########################################################################################################
 #Binning
