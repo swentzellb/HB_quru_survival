@@ -222,3 +222,7 @@ cor.test(seedInterval$leafNumber, seedInterval$brchLvD)
 #correlation between leaf number and survival
 cor.test(seedInterval$leafNumber, seedInterval$survival)
 #correlated p-value <0.01 and cor = 0.49
+
+#correlation between branch ratio and survival
+cor.test(seedInterval$brchLvD, seedInterval$survival)
+#correlated p-value <0.01 and cor = 0.1
