@@ -1,11 +1,9 @@
 # Sage Wentzell-Brehme
-# June 15, 2020
-# Summer Science Research Program
-# Initial Hubbard Brook historical Red Oak seedling survival and health data (2011-2019)
-# UPDATED Sept 8, 2020
-# Thesis data analysis - QURU sdlg survival at Hubbard Brook valley wide plots 
+# November 24, 2020
+# Senior Thesis
+# Data analysis
+# QURU sdlg survival at Hubbard Brook valley wide plots between 2011 and 2020
 
-#UPDATED Sept 30, 2020 to include 2020 data
 
 #load packages
 library(tidyverse)
@@ -40,7 +38,6 @@ Seed <- Seed %>% separate(Point, c("Distance", "TransDir"), sep = -1)
 
 #separate and remove point type, plot off transect or on center line of transect, from distance along transect
 Seed <- Seed %>% separate(Distance, c("PointType", "Distance"), sep = 1)
-
 
 
 # make unique column for seedling ID
@@ -175,6 +172,7 @@ summary(Mod_2)
 #Model for survival by Leaf Damage
 Mod_3 <- glm(survival ~ seedDamage, data=seedInterval, family=quasibinomial(logit))
 summary(Mod_3)
+TukeyHSD(aov(Mod_3)) #compare categories
 
 #Model for survival by Live/Dead Branch Ratio
 Mod_4 <- glm(survival ~ brchLvD, data=seedInterval, family=quasibinomial(logit))
@@ -186,12 +184,33 @@ summary(Mod_4)
 #Model for survival by Leaf number with Year interval as a random effect
 M1 <- glmer(survival ~ leafNumber + (1|interval), data=seedInterval, family="binomial")
 summary(M1)
+ranef(M1)
+#AIC = 478.6
 
-#Model for survival by Leaf number and Live/Dead Branch ratio 
-#with Year interval as a random effect
+#Model for survival by Leaf number and Live/Dead Branch ratio with Year interval as a random effect
 M2 <- glmer(survival ~ leafNumber + brchLvD + (1|interval), data=seedInterval, 
             family = "binomial")
 summary(M2)
+ranef(M2)
+#AIC = 61.8
+
+
+#Model for survival by leaf number
+M3 <- glm(survival ~ leafNumber, data = seedInterval, family ="binomial")
+summary(M3)
+#AIC = 513
+
+#Model for survival by branch ratio with Year interval as a random effect
+M4 <- glmer(survival ~ brchLvD + (1|interval), data = seedInterval, family ="binomial")
+summary(M4)
+ranef(M4)
+#AIC = 163
+
+#Model for survival by Leaf Damage
+M5 <- glm(survival ~ seedDamage, data=seedInterval, family="binomial")
+summary(M5)
+TukeyHSD(aov(M5)) # compare categories
+
 
 ###################################################
 ##Correlation tests
@@ -202,3 +221,4 @@ cor.test(seedInterval$leafNumber, seedInterval$brchLvD)
 
 #correlation between leaf number and survival
 cor.test(seedInterval$leafNumber, seedInterval$survival)
+#correlated p-value <0.01 and cor = 0.49
