@@ -209,9 +209,11 @@ ranef(M4)
 #Model for survival by Leaf Damage
 M5 <- glm(survival ~ seedDamage, data=seedInterval, family="binomial")
 summary(M5)
+stepAIC(M5)
 TukeyHSD(aov(M5)) # compare categories
 
-
+M6 <- glmer(survival ~ seedDamage + (1|interval), data=seedInterval, family="binomial")
+summary(M6)
 ###################################################
 ##Correlation tests
 
