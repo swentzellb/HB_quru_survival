@@ -74,12 +74,13 @@ length(unique(seedIDs$seedID)) #1369 - we're good
 Seed <- dplyr::select(seedIDs, -SdlgSpp, -SdlgNum, -PointType, -Distance, 
                       -TransDir, -PlotDir,-Along, -TransEW, -FromTrans, -NSline)
 
+Seed$Stat20 <- as.numeric(Seed$Stat20) # fix Stat20 class
+Seed$Stat16 <- as.numeric(Seed$Stat16) # fix Stat16 class
 # replace PD and NF seedling status to 0
 Seed[Seed=="PD"] <- 0
 Seed[Seed=="NF"] <- 0
 Seed[Seed=="nf"] <- 0
-Seed$Stat20 <- as.numeric(Seed$Stat20) # fix Stat20 class
-Seed$Stat16 <- as.numeric(Seed$Stat16) # fix Stat16 class
+
 
 # Calculate & format the survival interval
 # 1. Select only seedID and columns with survival data
@@ -225,8 +226,8 @@ write_csv(seedIntervalAge, "seedIntervalAge_tidy.csv")
 #generalized linear models
 
 #change variable classes to factor
-seedIntervalAge$seedDamage <- as.factor(seedIntervalAge$seedDamage)
-seedIntervalAge$interval <- as.factor(seedIntervalAge$interval)
+seedInterval$seedDamage <- as.factor(seedInterval$seedDamage)
+seedInterval$interval <- as.factor(seedInterval$interval)
 
 #Create a model for survival by Leaf number, Damage, Live/Dead Branch ratio 
 Mod_1 <- glm(survival ~ leafNumber + seedDamage + brchLvD + yearsAlive, data=seedIntervalAge, 
@@ -316,3 +317,5 @@ cor.test(seedInterval$leafNumber, seedInterval$survival)
 #correlation between branch ratio and survival
 cor.test(seedInterval$brchLvD, seedInterval$survival)
 #correlated p-value <0.01 and cor = 0.1
+
+

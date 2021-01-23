@@ -234,11 +234,11 @@ write_csv(seedIntervalAge, "seedIntervalAge_tidy.csv")
 #generalized linear models
 
 #change variable classes to factor
-seedInterval$seedDamage <- as.factor(seedInterval$seedDamage)
+seedIntervalAge$seedDamage <- as.factor(seedIntervalAge$seedDamage)
 seedInterval$interval <- as.factor(seedInterval$interval)
 
-
-#Create a model for survival by Leaf number, Damage, Live/Dead Branch ratio 
+#############
+#Create a model for survival by Leaf number, Damage, Live/Dead Branch ratio, and Age 
 Mod_1 <- glm(survival ~ leafNumber + seedDamage + brchLvD + yearsAlive, data=seedIntervalAge, 
              family = quasibinomial(logit))
 summary(Mod_1)
@@ -247,42 +247,167 @@ summary(Mod_1)
 RSS <- c(crossprod(Mod_1$residuals))
 MSE <- RSS / length(Mod_1$residuals)
 RMSE <- sqrt(MSE)
+#RMSE = 1.12
 
+############
 #Model for survival by Leaf Number
-Mod_2 <- glm(survival ~ leafNumber, data=seedInterval, family=quasibinomial(logit))
+Mod_2 <- glm(survival ~ leafNumber, data=seedIntervalAge, family=quasibinomial(logit))
 summary(Mod_2)
 
+# Find model RMSE
+RSS <- c(crossprod(Mod_2$residuals))
+MSE <- RSS / length(Mod_2$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 770201.7
 
+############
 #Model for survival by Leaf Damage
-Mod_3 <- glm(survival ~ seedDamage, data=seedInterval, family=quasibinomial(logit))
+Mod_3 <- glm(survival ~ seedDamage, data=seedIntervalAge, family=quasibinomial(logit))
 summary(Mod_3)
 
+# Find model RMSE
+RSS <- c(crossprod(Mod_3$residuals))
+MSE <- RSS / length(Mod_3$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 4.15
+
+############
 #Model for survival by Live/Dead Branch Ratio
-Mod_4 <- glm(survival ~ brchLvD, data=seedInterval, family=quasibinomial(logit))
+Mod_4 <- glm(survival ~ brchLvD, data=seedIntervalAge, family=quasibinomial(logit))
 summary(Mod_4)
 
-#Model for survival by Leaf number with Year interval as a random effect
+# Find model RMSE
+RSS <- c(crossprod(Mod_4$residuals))
+MSE <- RSS / length(Mod_4$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 20.39
+
+############
+#Model for survival by Age
+Mod_5 <- glm(survival ~ yearsAlive, data=seedIntervalAge, family=quasibinomial(logit))
+summary(Mod_5)
+#yearsAlive is significant p-value<0.001
+
+# Find model RMSE
+RSS <- c(crossprod(Mod_5$residuals))
+MSE <- RSS / length(Mod_5$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 2.69
+
+########################################################################
+#Add year as a random effect
+
+##########
+#Model for survival by Leaf number and Age with Year interval as a random effect
 M1 <- glmer(survival ~ leafNumber + yearsAlive + (1|interval), 
             data=seedIntervalAge, family="binomial")
 summary(M1)
+ranef(M1)
 
 # Calculate model Root Mean Squared Error (RMSE)
 RSS <- c(crossprod(residuals(M1))) #residual sum of squares
 MSE <- RSS / length(residuals(M1)) #mean squared error
 RMSE <- sqrt(MSE)
+#RMSE = 0.376
 
+##########
 #Model for survival by Leaf number and Live/Dead Branch ratio 
 #with Year interval as a random effect
 M2 <- glmer(survival ~ leafNumber + brchLvD + (1|interval), 
             data=seedIntervalAge, family = "binomial")
 summary(M2)
 
+# Calculate model Root Mean Squared Error (RMSE)
+RSS <- c(crossprod(residuals(M2))) #residual sum of squares
+MSE <- RSS / length(residuals(M2)) #mean squared error
+RMSE <- sqrt(MSE)
+#RMSE = 0.199
+
+##########
+#Model for survival by Leaf number, yearsAlive, and Live/Dead Branch ratio 
+#with Year interval as a random effect
+M3 <- glmer(survival ~ leafNumber + yearsAlive + brchLvD + (1|interval), 
+            data=seedIntervalAge, family = "binomial")
+summary(M3)
+# yearsAlive still not significant
+
+# Calculate model Root Mean Squared Error (RMSE)
+RSS <- c(crossprod(residuals(M3))) #residual sum of squares
+MSE <- RSS / length(residuals(M3)) #mean squared error
+RMSE <- sqrt(MSE)
+#RMSE = 0.199
+
+##########
+#Model for survival by Leaf number, yearsAlive, and Live/Dead Branch ratio 
+#with Year interval as a random effect
+M4 <- glmer(survival ~ leafNumber + yearsAlive + brchLvD + seedDamage + (1|interval), 
+            data=seedIntervalAge, family = "binomial")
+summary(M4)
+ranef(M4)
+
+# Calculate model Root Mean Squared Error (RMSE)
+RSS <- c(crossprod(residuals(M4))) #residual sum of squares
+MSE <- RSS / length(residuals(M4)) #mean squared error
+RMSE <- sqrt(MSE)
+#RMSE = 0.124
+
+##########
+#Model for survival by Leaf Damage
+#with Year interval as a random effect
+M5 <- glmer(survival ~ seedDamage + (1|interval), 
+            data=seedIntervalAge, family = "binomial")
+summary(M5)
+ranef(M5)
+
+# Calculate model Root Mean Squared Error (RMSE)
+RSS <- c(crossprod(residuals(M5))) #residual sum of squares
+MSE <- RSS / length(residuals(M5)) #mean squared error
+RMSE <- sqrt(MSE)
+#RMSE = 0.248
+
+M6 <- glmer(survival ~ leafNumber + yearsAlive + seedDamage + (1|interval), 
+            data=seedIntervalAge, family = "binomial")
+summary(M6)
+ranef(M6)
+
+# Calculate model Root Mean Squared Error (RMSE)
+RSS <- c(crossprod(residuals(M6))) #residual sum of squares
+MSE <- RSS / length(residuals(M6)) #mean squared error
+RMSE <- sqrt(MSE)
+
 ###################################################
 ##Correlation tests
 
 #correlation between leaf number and branch ratio
-cor.test(seedInterval$leafNumber, seedInterval$brchLvD)
+cor.test(seedIntervalAge$leafNumber, seedIntervalAge$brchLvD)
 #correlated p-value <0.01 and cor = 0.17
+
+#correlation between age and branch ratio
+cor.test(seedIntervalAge$yearsAlive, seedIntervalAge$brchLvD)
+#correlated p-value <0.01 and cor = -0.23
+
+#correlation between age and leaf number
+cor.test(seedIntervalAge$yearsAlive, seedIntervalAge$leafNumber)
+#correlated p-value <0.01 and cor = 0.2
+
+#correlation between branch ratio and survival
+cor.test(seedIntervalAge$brchLvD, seedIntervalAge$survival)
+#correlated p-value <0.01 and cor = 0.106
 
 #correlation between leaf number and survival
 cor.test(seedInterval$leafNumber, seedInterval$survival)
+#correlated p-value < 2.2e-16 and cor = 0.499
+
+#correlation between Age and survival
+cor.test(seedIntervalAge$yearsAlive, seedIntervalAge$survival)
+#correlated p-value < 0.01 and cor = 0.1
+
+#correlation between Age and seedling damage
+cor.test(seedIntervalAge$yearsAlive, as.numeric(seedIntervalAge$seedDamage))
+#correlated p-value =.002 and cor = 0.06
+
+#correlation between survival and seedling damage
+cor.test(seedIntervalAge$survival, as.numeric(seedIntervalAge$seedDamage))
+#correlated p-value < 0.001 and cor = 0.33
+
+#boxplot(seedIntervalAge$yearsAlive, seedIntervalAge$interval)
