@@ -345,6 +345,15 @@ M4 <- glmer(survival ~ leafNumber + yearsAlive + brchLvD + seedDamage + (1|inter
 summary(M4)
 ranef(M4)
 
+#group by? 
+
+seedIntervalAge$seedDamage <- as.numeric(seedIntervalAge$seedDamage)
+class(seedIntervalAge$seedDamage)
+
+test <- seedIntervalAge %>%
+  group_by(interval) %>%
+  summarize(testDam = count(seedDamage))
+
 # Calculate model Root Mean Squared Error (RMSE)
 RSS <- c(crossprod(residuals(M4))) #residual sum of squares
 MSE <- RSS / length(residuals(M4)) #mean squared error
