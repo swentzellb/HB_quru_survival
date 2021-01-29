@@ -316,6 +316,7 @@ RMSE <- sqrt(MSE)
 M2 <- glmer(survival ~ leafNumber + brchLvD + (1|interval), 
             data=seedIntervalAge, family = "binomial")
 summary(M2)
+ranef(M2)
 
 # Calculate model Root Mean Squared Error (RMSE)
 RSS <- c(crossprod(residuals(M2))) #residual sum of squares
@@ -330,6 +331,7 @@ M3 <- glmer(survival ~ leafNumber + yearsAlive + brchLvD + (1|interval),
             data=seedIntervalAge, family = "binomial")
 summary(M3)
 # yearsAlive still not significant
+ranef(M3)
 
 # Calculate model Root Mean Squared Error (RMSE)
 RSS <- c(crossprod(residuals(M3))) #residual sum of squares
@@ -337,22 +339,21 @@ MSE <- RSS / length(residuals(M3)) #mean squared error
 RMSE <- sqrt(MSE)
 #RMSE = 0.199
 
-##########
-#Model for survival by Leaf number, yearsAlive, and Live/Dead Branch ratio 
+########## M4
+#Model for survival by Leaf number, yearsAlive, Live/Dead Branch ratio, and Seed Damage 
 #with Year interval as a random effect
 M4 <- glmer(survival ~ leafNumber + yearsAlive + brchLvD + seedDamage + (1|interval), 
             data=seedIntervalAge, family = "binomial")
 summary(M4)
 ranef(M4)
 
-#group by? 
+############
+#check distribution of seed Damage variable by year
+table(seedIntervalAge$seedDamage)
 
-seedIntervalAge$seedDamage <- as.numeric(seedIntervalAge$seedDamage)
-class(seedIntervalAge$seedDamage)
-
-test <- seedIntervalAge %>%
+seedDamageInt <- seedIntervalAge %>%
   group_by(interval) %>%
-  summarize(testDam = count(seedDamage))
+  count(seedDamage)
 
 # Calculate model Root Mean Squared Error (RMSE)
 RSS <- c(crossprod(residuals(M4))) #residual sum of squares
@@ -360,11 +361,12 @@ MSE <- RSS / length(residuals(M4)) #mean squared error
 RMSE <- sqrt(MSE)
 #RMSE = 0.124
 
-##########
+########## M5
 #Model for survival by Leaf Damage
 #with Year interval as a random effect
 M5 <- glmer(survival ~ seedDamage + (1|interval), 
-            data=seedIntervalAge, family = "binomial")
+            data=seedIntervalAge, family = "binomial", 
+            control = glmerControl(optimizer ="Nelder_Mead"))
 summary(M5)
 ranef(M5)
 
@@ -374,6 +376,10 @@ MSE <- RSS / length(residuals(M5)) #mean squared error
 RMSE <- sqrt(MSE)
 #RMSE = 0.248
 
+
+########## M6
+#Model for survival by Leaf Number, Age, and Leaf Damage
+#with Year interval as a random effect
 M6 <- glmer(survival ~ leafNumber + yearsAlive + seedDamage + (1|interval), 
             data=seedIntervalAge, family = "binomial")
 summary(M6)
@@ -383,6 +389,79 @@ ranef(M6)
 RSS <- c(crossprod(residuals(M6))) #residual sum of squares
 MSE <- RSS / length(residuals(M6)) #mean squared error
 RMSE <- sqrt(MSE)
+
+########## M7
+#Model for survival by Leaf Number
+#with Year interval as a random effect
+M7 <- glmer(survival ~ leafNumber + (1|interval), 
+            data=seedIntervalAge, family = "binomial")
+summary(M7)
+ranef(M7)
+
+# Calculate model Root Mean Squared Error (RMSE)
+RSS <- c(crossprod(residuals(M7))) #residual sum of squares
+MSE <- RSS / length(residuals(M7)) #mean squared error
+RMSE <- sqrt(MSE)
+RMSE
+
+
+########## M8
+#Model for survival by Age
+#with Year interval as a random effect
+M8 <- glmer(survival ~ yearsAlive + (1|interval), 
+            data=seedIntervalAge, family = "binomial")
+summary(M8)
+ranef(M8)
+
+# Calculate model Root Mean Squared Error (RMSE)
+RSS <- c(crossprod(residuals(M8))) #residual sum of squares
+MSE <- RSS / length(residuals(M8)) #mean squared error
+RMSE <- sqrt(MSE)
+RMSE
+
+########## M9
+#Model for survival by Live/Dead Branch Ratio
+#with Year interval as a random effect
+M9 <- glmer(survival ~ brchLvD + (1|interval), 
+            data=seedIntervalAge, family = "binomial")
+summary(M9)
+ranef(M9)
+
+# Calculate model Root Mean Squared Error (RMSE)
+RSS <- c(crossprod(residuals(M9))) #residual sum of squares
+MSE <- RSS / length(residuals(M9)) #mean squared error
+RMSE <- sqrt(MSE)
+RMSE
+
+
+########## M10
+#Model for survival by Age and Leaf Damage
+#with Year interval as a random effect
+M10 <- glmer(survival ~ yearsAlive + seedDamage + (1|interval), 
+            data=seedIntervalAge, family = "binomial")
+summary(M10)
+ranef(M10)
+
+# Calculate model Root Mean Squared Error (RMSE)
+RSS <- c(crossprod(residuals(M10))) #residual sum of squares
+MSE <- RSS / length(residuals(M10)) #mean squared error
+RMSE <- sqrt(MSE)
+RMSE
+
+########## M11
+#Model for survival by leaf Number and Leaf Damage
+#with Year interval as a random effect
+M11 <- glmer(survival ~ leafNumber + seedDamage + (1|interval), 
+             data=seedIntervalAge, family = "binomial")
+summary(M11)
+ranef(M11)
+
+# Calculate model Root Mean Squared Error (RMSE)
+RSS <- c(crossprod(residuals(M11))) #residual sum of squares
+MSE <- RSS / length(residuals(M11)) #mean squared error
+RMSE <- sqrt(MSE)
+RMSE
+
 
 ###################################################
 ##Correlation tests
@@ -419,4 +498,22 @@ cor.test(seedIntervalAge$yearsAlive, as.numeric(seedIntervalAge$seedDamage))
 cor.test(seedIntervalAge$survival, as.numeric(seedIntervalAge$seedDamage))
 #correlated p-value < 0.001 and cor = 0.33
 
-#boxplot(seedIntervalAge$yearsAlive, seedIntervalAge$interval)
+
+##########################################################################
+### Plots
+##########################################################################
+
+#plot Distribution of Seedling Ages for each Year interval
+boxplot(yearsAlive ~ interval, data = seedIntervalAge, xlab = "year",
+        ylab = "age", main = "Distribution of seedling ages each year")
+
+table(seedIntervalAge$yearsAlive)
+
+test2 <- seedIntervalAge %>%
+  subset(seedIntervalAge$yearsAlive < 11)
+
+#plot Distribution of Seedling Ages for each Year interval with outliers removed
+# outliers defined as seedlings age 11 years and older
+boxplot(yearsAlive ~ interval, data = test2, xlab = "year",
+        ylab = "age", main = "Distribution of seedling ages each year")
+
