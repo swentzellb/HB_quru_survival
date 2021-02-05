@@ -262,7 +262,7 @@ RMSE <- sqrt(MSE)
 
 ############
 #Model for survival by Leaf Damage
-Mod_3 <- glm(survival ~ seedDamage, data=seedIntervalAge, family=quasibinomial(logit))
+Mod_3 <- glm(survival ~ seedDamage + interval, data=seedIntervalAge, family=quasibinomial(logit))
 summary(Mod_3)
 
 # Find model RMSE
@@ -297,6 +297,10 @@ RMSE <- sqrt(MSE)
 ########################################################################
 #Add year as a random effect
 
+seedIntervalAge <- seedIntervalAge %>%
+  mutate(log_yearsAlive = log(yearsAlive))
+
+summary(seedIntervalAge$log_yearsAlive)
 ##########
 #Model for survival by Leaf number and Age with Year interval as a random effect
 M1 <- glmer(survival ~ leafNumber + yearsAlive + (1|interval), 
@@ -515,5 +519,8 @@ test2 <- seedIntervalAge %>%
 #plot Distribution of Seedling Ages for each Year interval with outliers removed
 # outliers defined as seedlings age 11 years and older
 boxplot(yearsAlive ~ interval, data = test2, xlab = "year",
+        ylab = "age", main = "Distribution of seedling ages each year")
+
+boxplot(log_yearsAlive ~ interval, data = seedIntervalAge, xlab = "year",
         ylab = "age", main = "Distribution of seedling ages each year")
 
