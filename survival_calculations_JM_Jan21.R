@@ -467,6 +467,14 @@ RMSE <- sqrt(MSE)
 RMSE
 
 
+########## M11
+#Model for survival by leaf Number and Leaf Damage
+#with Year interval as a random effect
+M12 <- glmer(survival ~ leafNumber + log(yearsAlive) + (1|interval), 
+             data=seedIntervalAge, family = "binomial")
+summary(M11)
+ranef(M11)
+
 ###################################################
 ##Correlation tests
 

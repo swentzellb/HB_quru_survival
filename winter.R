@@ -39,8 +39,8 @@ ggplot(data = HB_snow)+
 summary <- HB_snowHQ %>%
   group_by(WINTER)%>%
   summarize(medfrostdepth = median(frost_depth, na.rm=TRUE),
-            sumfrostdepth = sum(frost_depth>100, na.rm=TRUE),
-            sumsnowdepth = sum(snow_depth >200, na.rm=TRUE), 
+            sumfrostdepth = sum(frost_depth>=100, na.rm=TRUE),
+            sumsnowdepth = sum(snow_depth>=200, na.rm=TRUE), 
             medsnowdepth = median(snow_depth, na.rm=TRUE),
             meansnowdepth = mean(snow_depth, na.rm=TRUE))
 
@@ -48,6 +48,13 @@ summary <- HB_snowHQ %>%
 ggplot(data = summary)+
   geom_point(mapping=aes(x=WINTER, y=medfrostdepth))
 
+#plot the number of days with frost depth >= 100 mm
+ggplot(data = summary)+
+  geom_point(mapping=aes(x=WINTER, y=sumfrostdepth))
+
+#plot the median snow depth by winter
+ggplot(data = summary)+
+  geom_point(mapping=aes(x=WINTER, y=medsnowdepth))
 
 table(HB_snow$Date)
 
@@ -55,6 +62,7 @@ test <- HB_snow %>%
   group_by(WINTER)%>%
   summarize(winterstart = min(Date, na.rm=TRUE),
             winterend = max(Date, na.rm=TRUE))
+
 
 #######################################################
 ### Temperature Data
