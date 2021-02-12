@@ -31,18 +31,26 @@ summary(HB_snow)
 HB_snowHQ <- HB_snow %>%
   filter(Site == "STAHQ")
 
+#subset to recent years
+HB_snow93 <- HB_snow %>%
+  filter(Date >= as.Date("1993-01-01"))
+
 #plot snow depth by frost depth
 ggplot(data = HB_snow)+
   geom_point(mapping=aes(x=snow_depth, y=frost_depth))
 
 #summarize climate variables for each winter period
 summary <- HB_snowHQ %>%
-  group_by(WINTER)%>%
+  dplyr::group_by(WINTER)%>%
   summarize(medfrostdepth = median(frost_depth, na.rm=TRUE),
             sumfrostdepth = sum(frost_depth>=100, na.rm=TRUE),
             sumsnowdepth = sum(snow_depth>=200, na.rm=TRUE), 
             medsnowdepth = median(snow_depth, na.rm=TRUE),
-            meansnowdepth = mean(snow_depth, na.rm=TRUE))
+            meansnowdepth = mean(snow_depth, na.rm=TRUE),
+            sdsnowdepth = sd(snow_depth, na.rm=TRUE))
+
+summary(HB_snowHQ)
+summary(HB_snow93)
 
 #plot the median frost depth by winter
 ggplot(data = summary)+
@@ -55,6 +63,23 @@ ggplot(data = summary)+
 #plot the median snow depth by winter
 ggplot(data = summary)+
   geom_point(mapping=aes(x=WINTER, y=medsnowdepth))
+
+#plot the sd snow depth by winter
+ggplot(data = summary)+
+  geom_point(mapping=aes(x=WINTER, y=sdsnowdepth))
+
+#plot distribution of snow depth by winter
+boxplot(snow_depth ~ WINTER, data = HB_snowHQ)
+
+
+
+
+ggplot(data = HB_snow93)+
+  geom_point(mapping=aes(x=WINTER, y=sumfrostdepth))
+
+# linear regression of 
+lm_1 <- lm(meansnowdepth ~ WINTER, data=summary)
+summary(lm_1)
 
 table(HB_snow$Date)
 
