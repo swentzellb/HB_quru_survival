@@ -27,20 +27,41 @@ HB_snow$frost_pct[HB_snow$frost_pct==-99] <- NA
 #check that NA values are correct
 summary(HB_snow)
 
-#subset the data to the HQ site 
+#subset the data to the HQ site & 2011-2020 winter time period
 HB_snowHQ <- HB_snow %>%
-  filter(Site == "STAHQ")
+  filter(Site == "STAHQ", 
+         Date >= as.Date("2011-06-06"))
 
-#subset to recent years
-HB_snow93 <- HB_snow %>%
-  filter(Date >= as.Date("1993-01-01"))
+#subset to Watershed 1
+HB_snowW1 <- HB_snow %>%
+  filter(Site %in% c("STA1", "STA2", "STA3"), 
+         Date >= as.Date("2011-06-06"))
+
+#subset to Watershed 6
+HB_snowW6 <- HB_snow %>%
+  filter(Site %in% c("STA9", "STA10", "STA11"), 
+         Date >= as.Date("2011-06-06"))
+
+
+
+table(HB_snow$Site)
+
+
+#another supplemental table showing # of data points in each yr
+# FIX THIS
+# Fig1 <- HB_snowHQ %>%
+#   select(WINTER, snow_depth) %>%
+#   filter(na.rm=TRUE) %>%
+#   group_by(WINTER) %>%
+#   summarise(count = n(snow_depth))
+
 
 #plot snow depth by frost depth
 ggplot(data = HB_snow)+
   geom_point(mapping=aes(x=snow_depth, y=frost_depth))
 
 #summarize climate variables for each winter period
-summary <- HB_snowHQ %>%
+sumHQ <- HB_snowHQ %>%
   dplyr::group_by(WINTER)%>%
   summarize(medfrostdepth = median(frost_depth, na.rm=TRUE),
             sumfrostdepth = sum(frost_depth>=100, na.rm=TRUE),
@@ -50,7 +71,22 @@ summary <- HB_snowHQ %>%
             sdsnowdepth = sd(snow_depth, na.rm=TRUE))
 
 summary(HB_snowHQ)
-summary(HB_snow93)
+
+sumW1 <- HB_snowW1 %>%
+  dplyr::group_by(WINTER)%>%
+  summarize(medfrostdepth = median(frost_depth, na.rm=TRUE),
+            sumfrostdepth = sum(frost_depth>=100, na.rm=TRUE),
+            sumsnowdepth = sum(snow_depth>=200, na.rm=TRUE), 
+            medsnowdepth = median(snow_depth, na.rm=TRUE),
+            meansnowdepth = mean(snow_depth, na.rm=TRUE),
+            sdsnowdepth = sd(snow_depth, na.rm=TRUE))
+
+
+
+cor.test(sumHQ$medsnowdepth, sumW1$medsnowdepth)
+cor.test(sumHQ$meansnowdepth, sumW1$meansnowdepth)
+cor.test(sumHQ$medfrostdepth, sumW1$medfrostdepth)
+cor.test(sumHQ$meanfrostdepth, sumW1$meanfrostdepth)
 
 #plot the median frost depth by winter
 ggplot(data = summary)+
