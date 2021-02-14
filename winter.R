@@ -7,6 +7,7 @@
 library(tidyverse)
 library(lubridate)
 library(lme4)
+library(ggplot2)
 
 
 # set working directory
@@ -49,44 +50,90 @@ table(HB_snow$Site)
 
 #another supplemental table showing # of data points in each yr
 # FIX THIS
-# Fig1 <- HB_snowHQ %>%
-#   select(WINTER, snow_depth) %>%
-#   filter(na.rm=TRUE) %>%
-#   group_by(WINTER) %>%
-#   summarise(count = n(snow_depth))
+Fig1 <- HB_snowHQ %>%
+   select(WINTER, snow_depth) %>%
+   filter(na.rm=TRUE) %>%
+   group_by(WINTER) %>%
+   summarise(count = n())
+
+Fig2 <- HB_snowW1 %>%
+  select(WINTER, snow_depth) %>%
+  filter(na.rm=TRUE) %>%
+  group_by(WINTER) %>%
+  summarise(count = n())
+
+
+snowdepthsum <- HB_snowHQ %>%
+  select(WINTER, snow_depth) %>%
+  filter(na.rm=TRUE) %>%
+  group_by(WINTER) %>%
+  summarise(count = n())
+
+frostdepthsum <- HB_snowHQ %>%
+  select(WINTER, frost_depth) %>%
+  filter(na.rm=TRUE) %>%
+  group_by(WINTER) %>%
+  summarise(count = n())
+
+frostpctsum <- HB_snowHQ %>%
+  select(WINTER, frost_pct) %>%
+  filter(na.rm=TRUE) %>%
+  group_by(WINTER) %>%
+  summarise(count = n())
+
 
 
 #plot snow depth by frost depth
 ggplot(data = HB_snow)+
   geom_point(mapping=aes(x=snow_depth, y=frost_depth))
 
-#summarize climate variables for each winter period
+#summarize climate variables for each winter period at HQ site
 sumHQ <- HB_snowHQ %>%
   dplyr::group_by(WINTER)%>%
   summarize(medfrostdepth = median(frost_depth, na.rm=TRUE),
-            sumfrostdepth = sum(frost_depth>=100, na.rm=TRUE),
+            sumfrostdepth = sum(frost_depth>=50, na.rm=TRUE),
             sumsnowdepth = sum(snow_depth>=200, na.rm=TRUE), 
             medsnowdepth = median(snow_depth, na.rm=TRUE),
             meansnowdepth = mean(snow_depth, na.rm=TRUE),
-            sdsnowdepth = sd(snow_depth, na.rm=TRUE))
+            sdsnowdepth = sd(snow_depth, na.rm=TRUE),
+            medfrostpct = median(frost_pct, na.rm=TRUE))
 
-summary(HB_snowHQ)
-
+#summarize climate variables for each winter period at Watershed 1
 sumW1 <- HB_snowW1 %>%
   dplyr::group_by(WINTER)%>%
   summarize(medfrostdepth = median(frost_depth, na.rm=TRUE),
-            sumfrostdepth = sum(frost_depth>=100, na.rm=TRUE),
+            sumfrostdepth = sum(frost_depth>=50, na.rm=TRUE),
+            sumsnowdepth = sum(snow_depth>=200, na.rm=TRUE), 
+            medsnowdepth = median(snow_depth, na.rm=TRUE),
+            meansnowdepth = mean(snow_depth, na.rm=TRUE),
+            sdsnowdepth = sd(snow_depth, na.rm=TRUE),
+            medfrostpct = median(frost_pct, na.rm=TRUE))
+
+#summarize climate variables for each winter period at Watershed 6
+sumW6 <- HB_snowW6 %>%
+  dplyr::group_by(WINTER)%>%
+  summarize(medfrostdepth = median(frost_depth, na.rm=TRUE),
+            sumfrostdepth = sum(frost_depth>=50, na.rm=TRUE),
             sumsnowdepth = sum(snow_depth>=200, na.rm=TRUE), 
             medsnowdepth = median(snow_depth, na.rm=TRUE),
             meansnowdepth = mean(snow_depth, na.rm=TRUE),
             sdsnowdepth = sd(snow_depth, na.rm=TRUE))
 
-
-
+#check correlation of summary variables between HQ and Watershed 1 sampling sites
 cor.test(sumHQ$medsnowdepth, sumW1$medsnowdepth)
 cor.test(sumHQ$meansnowdepth, sumW1$meansnowdepth)
 cor.test(sumHQ$medfrostdepth, sumW1$medfrostdepth)
-cor.test(sumHQ$meanfrostdepth, sumW1$meanfrostdepth)
+cor.test(sumHQ$sumsnowdepth, sumW1$sumsnowdepth)
+cor.test(sumHQ$sumfrostdepth, sumW1$sumfrostdepth)
+cor.test(sumHQ$medfrostpct, sumW1$medfrostpct)
+
+#check correlation of summary variables between HQ and Watershed 6 sampling sites
+cor.test(sumHQ$medsnowdepth, sumW6$medsnowdepth)
+cor.test(sumHQ$meansnowdepth, sumW6$meansnowdepth)
+cor.test(sumHQ$medfrostdepth, sumW6$medfrostdepth)
+cor.test(sumHQ$sumsnowdepth, sumW6$sumsnowdepth)
+cor.test(sumHQ$sumfrostdepth, sumW6$sumfrostdepth)
+
 
 #plot the median frost depth by winter
 ggplot(data = summary)+
@@ -114,7 +161,7 @@ ggplot(data = HB_snow93)+
   geom_point(mapping=aes(x=WINTER, y=sumfrostdepth))
 
 # linear regression of 
-lm_1 <- lm(meansnowdepth ~ WINTER, data=summary)
+lm_1 <- lm(meansnowdepth ~ WINTER, data=sumHQ)
 summary(lm_1)
 
 table(HB_snow$Date)
@@ -123,6 +170,26 @@ test <- HB_snow %>%
   group_by(WINTER)%>%
   summarize(winterstart = min(Date, na.rm=TRUE),
             winterend = max(Date, na.rm=TRUE))
+
+
+
+
+
+
+# add in random effect of survival data
+View(random)
+sumHQ$WINTER <- as.factor(sumHQ$WINTER)
+
+class(sumHQ$WINTER)
+
+#variable classes are different, but that's not the issue
+# interval vs single year definition of winter 
+
+ran <- random %>%
+  rename(WINTER = grp) %>%
+  dplyr::select(WINTER, condval, condsd)
+
+test <- left_join(ran, sumHQ, by = NULL)
 
 
 #######################################################

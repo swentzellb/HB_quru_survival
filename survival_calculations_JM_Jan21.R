@@ -13,6 +13,8 @@ library(tidyr)
 library(ggplot2)
 library(raster)
 library(lme4)
+library(broom.mixed)
+library(lattice)
 
 
 #set working directory
@@ -307,6 +309,17 @@ M1 <- glmer(survival ~ leafNumber + yearsAlive + (1|interval),
             data=seedIntervalAge, family="binomial")
 summary(M1)
 ranef(M1)
+glance(M1) # from broom.mixed package, returns table with AIC, BIC, & df of residual
+tidy(M1)
+coef(M1)
+
+#make random effects data into a data frame
+random <- data.frame(ranef(M1))
+
+#plot random effects by interval
+require(lattice)
+dotplot(ranef(M1, condVar=TRUE))
+
 
 # Calculate model Root Mean Squared Error (RMSE)
 RSS <- c(crossprod(residuals(M1))) #residual sum of squares
