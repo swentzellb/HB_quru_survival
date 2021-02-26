@@ -139,9 +139,7 @@ cor.test(sumHQ$sumfrostdepth, sumW6$sumfrostdepth)
 ggplot(data = summary)+
   geom_point(mapping=aes(x=WINTER, y=medfrostdepth))
 
-#plot the number of days with frost depth >= 100 mm
-ggplot(data = summary)+
-  geom_point(mapping=aes(x=WINTER, y=sumfrostdepth))
+
 
 #plot the median snow depth by winter
 ggplot(data = summary)+
@@ -184,13 +182,29 @@ class(sumHQ$WINTER)
 
 #variable classes are different, but that's not the issue
 # interval vs single year definition of winter 
-
+random$WINTER <- seq(2012,2019)
 ran <- random %>%
+  mutate(WINTER = seq(2012,2020))
   rename(WINTER = grp) %>%
   dplyr::select(WINTER, condval, condsd)
 
-test <- left_join(ran, sumHQ, by = NULL)
+test <- left_join(random, sumHQ, by = "WINTER")
 
+#plot the number of days with frost depth >= 50 mm
+ggplot(data = test)+
+  geom_point(mapping=aes(x=WINTER, y=sumfrostdepth))
+
+
+ggplot(data = test)+
+  geom_point(mapping=aes(x=WINTER, y=medfrostdepth))
+
+
+ggplot(data = test)+
+  geom_point(mapping=aes(x=WINTER, y=medsnowdepth))
+
+
+ggplot(data = test)+
+  geom_point(mapping=aes(x=condval, y=medsnowdepth))
 
 #######################################################
 ### Temperature Data
