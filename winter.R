@@ -135,11 +135,11 @@ cor.test(sumHQ$sumsnowdepth, sumW6$sumsnowdepth)
 cor.test(sumHQ$sumfrostdepth, sumW6$sumfrostdepth)
 
 
+
+
 #plot the median frost depth by winter
 ggplot(data = summary)+
   geom_point(mapping=aes(x=WINTER, y=medfrostdepth))
-
-
 
 #plot the median snow depth by winter
 ggplot(data = summary)+
@@ -154,57 +154,136 @@ boxplot(snow_depth ~ WINTER, data = HB_snowHQ)
 
 
 
-
-ggplot(data = HB_snow93)+
-  geom_point(mapping=aes(x=WINTER, y=sumfrostdepth))
-
 # linear regression of 
 lm_1 <- lm(meansnowdepth ~ WINTER, data=sumHQ)
 summary(lm_1)
 
 table(HB_snow$Date)
 
-test <- HB_snow %>%
-  group_by(WINTER)%>%
-  summarize(winterstart = min(Date, na.rm=TRUE),
-            winterend = max(Date, na.rm=TRUE))
+# look at varying winter lengths
+# test <- HB_snow %>%
+#   group_by(WINTER)%>%
+#   summarize(winterstart = min(Date, na.rm=TRUE),
+#             winterend = max(Date, na.rm=TRUE))
 
 
-
-
-
-
+################################################
+################################################
 # add in random effect of survival data
-View(random)
-sumHQ$WINTER <- as.factor(sumHQ$WINTER)
 
-class(sumHQ$WINTER)
-
-#variable classes are different, but that's not the issue
-# interval vs single year definition of winter 
-random$WINTER <- seq(2012,2019)
+# add in additional column for singular year rather than interval for WINTER
+random$WINTER <- seq(2013,2020)
+#
 ran <- random %>%
-  mutate(WINTER = seq(2012,2020))
-  rename(WINTER = grp) %>%
+  mutate(WINTER = seq(2013,2020)) %>%
   dplyr::select(WINTER, condval, condsd)
 
-test <- left_join(random, sumHQ, by = "WINTER")
+#join the random effects data table by the summarized winter climate variables from the HQ site
+ranef_winter <- left_join(random, sumHQ, by = "WINTER")
 
-#plot the number of days with frost depth >= 50 mm
-ggplot(data = test)+
-  geom_point(mapping=aes(x=WINTER, y=sumfrostdepth))
-
-
-ggplot(data = test)+
-  geom_point(mapping=aes(x=WINTER, y=medfrostdepth))
-
-
-ggplot(data = test)+
-  geom_point(mapping=aes(x=WINTER, y=medsnowdepth))
+#summarize climate variables at HQ site from 2012 to 2020
+sumHQtotal <- sumHQ %>%
+  summarize(medfrostdepth = median(medfrostdepth, na.rm=TRUE),
+            medsumfrostdepth = median(sumfrostdepth, na.rm=TRUE),
+            medsumsnowdepth = median(sumsnowdepth, na.rm=TRUE), 
+            medsnowdepth = median(medsnowdepth, na.rm=TRUE))
 
 
-ggplot(data = test)+
-  geom_point(mapping=aes(x=condval, y=medsnowdepth))
+##############################################
+#plots of winter climate variables by year
+##############################################
+
+#plot of number of days with frost depth > 50 mm
+ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=WINTER, y=sumfrostdepth))+
+  geom_hline(yintercept=7, linetype="dotted")+
+  theme_bw()
+
+#plot of median frost depth by year
+ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=WINTER, y=medfrostdepth))+
+  theme_bw()
+
+ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=WINTER, y=medsnowdepth))+
+  geom_hline(yintercept=182.88, linetype="dotted")+
+  theme_bw()
+
+#plot of mean snow depth in mm by year
+ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=WINTER, y=meansnowdepth))+
+  theme_bw()+
+  ylim(0,300)
+
+#plot of number of days with snow depth > 200 mm by year
+ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=WINTER, y=sumsnowdepth))+
+  geom_hline(yintercept=9, linetype="dotted")+
+  theme_bw()
+
+
+################################################
+# plots of ranef vs winter climate variables
+################################################
+
+ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=medfrostdepth, y=condval))+
+  theme_bw()+
+  ylab("random effect values")
+
+ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=medsnowdepth, y=condval))+
+  theme_bw()+
+  ylab("random effect values")+
+  xlab("median snow depth (mm)")
+
+ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=sumsnowdepth, y=condval))+
+  theme_bw()+
+  ylab("random effect values")
+
+ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=sumfrostdepth, y=condval))+
+  theme_bw()+
+  ylab("random effect values")
+
+
+
+###########################################################
+#linear models of winter climate variables effects on ranef
+
+# linear regression of ranef values by median frost depth 
+lm1 <- lm(condval ~ medfrostdepth, data=ranef_winter)
+summary(lm1)
+
+# linear regression of ranef values by median snow depth 
+lm2 <- lm(condval ~ medsnowdepth, data=ranef_winter)
+summary(lm2)
+
+# linear regression of ranef values by sum of snow depth > 200 mm
+lm3 <- lm(condval ~ sumsnowdepth, data=ranef_winter)
+summary(lm3)
+
+# linear regression of ranef values by sum of frost depth > 50 mm
+lm4 <- lm(condval ~ sumfrostdepth, data=ranef_winter)
+summary(lm4)
+
+# none of the winter climate variables are significantly impacting the ranef of survival 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #######################################################
 ### Temperature Data

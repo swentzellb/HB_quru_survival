@@ -321,6 +321,9 @@ require(lattice)
 dotplot(ranef(M1, condVar=TRUE))
 
 
+
+
+
 # Calculate model Root Mean Squared Error (RMSE)
 RSS <- c(crossprod(residuals(M1))) #residual sum of squares
 MSE <- RSS / length(residuals(M1)) #mean squared error
