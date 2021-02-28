@@ -548,3 +548,57 @@ boxplot(yearsAlive ~ interval, data = test2, xlab = "year",
 boxplot(log_yearsAlive ~ interval, data = seedIntervalAge, xlab = "year",
         ylab = "age", main = "Distribution of seedling ages each year")
 
+
+
+
+###############################################################################
+################################################################
+### Model predictions for individual sdlg survival
+
+##########visualizing: binomial plots with prediction line
+# specify formula
+log_form <- y ~ 1 / (1 + exp(b * (x - a)))
+##### age plot
+log_model <- nls(formula = log_form, data = list(x = seedIntervalAge$yearsAlive, y = seedIntervalAge$survival), start = list(a = 2, b = 1),control=list(maxiter=500))
+cor(seedIntervalAge$survival, predict(log_model))
+coef(log_model)
+# add column with age predictions to dataset
+seedIntervalAge$predAge <- 1 / (1 + exp(coef(log_model)["b"] * (seedIntervalAge$yearsAlive - coef(log_model)["a"])))
+
+
+##### Lvs plot
+log_model_2 <- nls(formula = log_form, data = list(x = seedIntervalAge$leafNumber, y = seedIntervalAge$survival), start = list(a = 1.5, b = .9),control=list(maxiter=500))
+cor(seedIntervalAge$survival, predict(log_model_2))
+coef(log_model_2)
+# add column with age predictions to dataset
+seedIntervalAge$predLvs <- 1 / (1 + exp(coef(log_model_2)["b"] * (seedIntervalAge$leafNumber - coef(log_model_2)["a"])))
+
+seedLvsPlot <- seedIntervalAge 
+
+
+#Plot 6
+#plot yearsAlive (or age of seedling) by survival status 
+#multi year model - includes 2011-2020
+ggplot(seedIntervalAge, aes(x=yearsAlive, y=survival, na.rm=TRUE))+
+  scale_y_continuous(breaks=c(0, 0.5, 1.0))+
+  geom_jitter( height=0.1, color="turquoise4")+
+  theme_classic()+
+  geom_line(aes(y=predAge), size=1)+
+  labs(y="Survival", x="Age")+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=14))
+#plot(p6)
+
+
+#Plot
+#plot yearsAlive (or age of seedling) by survival status 
+#multi year model - includes 2011-2020
+ggplot(seedIntervalAge, aes(x=leafNumber, y=survival, na.rm=TRUE))+
+  scale_y_continuous(breaks=c(0, 0.5, 1.0))+
+  geom_jitter( height=0.1, color="turquoise4")+
+  theme_classic()+
+  geom_line(aes(y=predLvs), size=1)+
+  labs(y="Survival", x="Number of leaves")+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=14))
+#plot(p7)
