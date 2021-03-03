@@ -471,6 +471,38 @@ M12 <- glmer(survival ~ leafNumber + log(yearsAlive) + (1|interval),
 summary(M11)
 ranef(M11)
 
+####################################################################################
+####################################################################################
+### Winter Climate 
+####################################################################################
+setwd("~/Thesis/HB_quru_survival")
+#snow & soil frost data
+HB_snow <- read.csv("data/HBEF_snowcourse_1956-2020.csv")
+
+# Clean missing data values to NA (-99 = missing)
+HB_snow$snow_depth[HB_snow$snow_depth==-99] <- NA
+HB_snow$swe[HB_snow$swe==-99] <- NA
+HB_snow$frost_depth[HB_snow$frost_depth==-99] <- NA
+HB_snow$frost_pct[HB_snow$frost_pct==-99] <- NA
+
+#check that NA values are correct
+summary(HB_snow)
+
+#subset the data to the HQ site & 2011-2020 winter time period
+HB_snowHQ <- HB_snow %>%
+  filter(Site == "STAHQ", 
+         Date >= as.Date("2011-06-06"))
+
+#summarize climate variables for each winter period at HQ site
+sumHQ <- HB_snowHQ %>%
+  dplyr::group_by(WINTER)%>%
+  summarize(medfrostdepth = median(frost_depth, na.rm=TRUE),
+            sumfrostdepth = sum(frost_depth>=50, na.rm=TRUE),
+            sumsnowdepth = sum(snow_depth>=200, na.rm=TRUE), 
+            medsnowdepth = median(snow_depth, na.rm=TRUE),
+            meansnowdepth = mean(snow_depth, na.rm=TRUE),
+            sdsnowdepth = sd(snow_depth, na.rm=TRUE),
+            medfrostpct = median(frost_pct, na.rm=TRUE))
 
 #########################################################
 #########################################################
