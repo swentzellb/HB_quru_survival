@@ -152,11 +152,10 @@ ggplot(data = summary)+
 #plot distribution of snow depth by winter
 boxplot(snow_depth ~ WINTER, data = HB_snowHQ)
 
-
-
 # linear regression of 
 lm_1 <- lm(meansnowdepth ~ WINTER, data=sumHQ)
 summary(lm_1)
+glance(lm_1)
 
 table(HB_snow$Date)
 
@@ -246,6 +245,11 @@ ggplot(data = ranef_winter)+
   geom_point(mapping=aes(x=sumfrostdepth, y=condval))+
   theme_bw()+
   ylab("random effect values")
+
+###########################################################################
+#correlation between winter climate variables and random effect of survival
+cor(ranef_winter$condval, ranef_winter$medsnowdepth)
+cor(ranef_winter$condval, ranef_winter$sumfrostdepth)
 
 
 

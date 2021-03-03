@@ -158,6 +158,7 @@ seedInterval <- left_join(seedSurvInt, seedLvs) %>%
   left_join(seedBrch) %>%
   filter(!is.na(survival)) # remove lines where survival is NA
 
+
 #########################################################
 #########################################################
 #Statistical Analysis
