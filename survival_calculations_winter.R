@@ -1,11 +1,8 @@
 # Sage Wentzell-Brehme
-# June 15, 2020
-# Summer Science Research Program
-# Initial Hubbard Brook historical Red Oak seedling survival and health data (2011-2019)
-# UPDATED Sept 8, 2020
-# Thesis data analysis - QURU sdlg survival at Hubbard Brook valley wide plots 
-
-#UPDATED Sept 30, 2020 to include 2020 data
+# Thesis Data Analysis
+# March 3, 2021
+# QURU sdlg survival at Hubbard Brook valley wide plots 
+# with winter climate data as a survival predictor
 
 #load packages
 library(tidyverse)
@@ -507,20 +504,51 @@ sumHQ <- HB_snowHQ %>%
 #########################################################
 #########################################################
 ## Combining seedling individual characteristics & survival with winter climate variables
+
+# add a new column to seedIntervalAge data frame referring to winter as a single year
 seedIntervalAge$WINTER <- seedIntervalAge$end_int
 seedIntervalAge$WINTER <- as.integer(seedIntervalAge$WINTER)
 
-seedIntervalWinter <- left_join(seedIntervalAge, HB_snowHQ, by = "WINTER")
+# join with summarized winter climate data
+seedIntervalWinter <- left_join(seedIntervalAge, sumHQ, by = "WINTER")
 
+# rescale the median snow depth variable for modeling
+seedIntervalWinter <- seedIntervalWinter %>%
+  mutate(scalemedsnowdepth = scale(medsnowdepth))
 
-M12 <- glmer(survival ~ leafNumber + yearsAlive + snow_depth + (1|interval), 
+cor.test(seedIntervalWinter$medsnowdepth, seedIntervalWinter$sumfrostdepth)
+
+# run model with median snow depth & leafNumber & yearsAlive
+M12 <- glmer(survival ~ leafNumber + yearsAlive + scalemedsnowdepth + (1|interval), 
              data=seedIntervalWinter, family="binomial")
 summary(M12)
+tidy(M12)
+# show random effects of year interval
+M12_ranef <- data.frame(ranef(M12))
 
-M13 <- glmer(survival ~ leafNumber + yearsAlive + frost_depth + (1|interval),
+# run model with total number of days with a frost depth > 50mm
+M13 <- glmer(survival ~ leafNumber + yearsAlive + sumfrostdepth + (1|interval),
              data=seedIntervalWinter, family = "binomial")
+summary(M13)
+tidy(M13)
+ranef(M13)
 
 
+# run model with median snow depth & leafNumber & yearsAlive & sumfrostdepth
+M14 <- glmer(survival ~ leafNumber + yearsAlive + scalemedsnowdepth + sumfrostdepth+ (1|interval),
+               data=seedIntervalWinter, family = "binomial")
+#show model summary
+summary(M14) 
+glance(M14)
+tidy(M14)
+
+# show random effect values of the year interval
+ranef(M14)
+
+require(lattice)
+dotplot(ranef(M14, condVar=TRUE))
+
+ranef_M14 <- data.frame(ranef(M14))
 
 ###################################################
 ##Correlation tests
