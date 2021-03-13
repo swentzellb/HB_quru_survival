@@ -6,9 +6,7 @@
 
 #load packages
 library(tidyverse)
-library(tidyr)
 library(ggplot2)
-library(raster)
 library(lme4)
 library(broom.mixed)
 library(lattice)
@@ -20,10 +18,17 @@ setwd("~/Thesis/HB_quru_survival/data")
 #read in csv files
 Seed <- read_csv("HB_VW_Oak_Trans_Survival_2020_CLEAN.csv") #updated sdlg spreadsheet w/2020 data
 Seed$VW <- paste0("p", Seed$VW) # add p to beginning of VW column
-PlotCoord <- read.csv("../Plot_Table_Basic.csv")
 
 summary(Seed) #summarize the data
 table(is.na(Seed$Stat19)) # determine how many NAs are present
+
+
+# find the total number of alive seedlings in 2019 on the 10 transects
+#test <- Seed %>%
+ # filter(VW == "p354" | VW == "p352" | VW =="p351" | VW =="p337"|VW=="p338"
+   #              |VW=="p317"|VW=="p322"|VW=="p379"|VW=="p378"|VW=="p396")
+
+#table(test$Stat19)
 
 #########################################################################
 # Data Cleaning

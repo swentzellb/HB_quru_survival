@@ -28,6 +28,13 @@ HB_snow$frost_pct[HB_snow$frost_pct==-99] <- NA
 #check that NA values are correct
 summary(HB_snow)
 
+#subset data to 2011-2020 winter time periods
+SnowSites<- HB_snow %>%
+  filter(Date >= as.Date("2011-06-06"))
+
+#check the sampling sites present
+table(SnowSites$Site)
+
 #subset the data to the HQ site & 2011-2020 winter time period
 HB_snowHQ <- HB_snow %>%
   filter(Site == "STAHQ", 
