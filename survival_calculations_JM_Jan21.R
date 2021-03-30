@@ -88,11 +88,11 @@ Seed <- dplyr::select(seedIDs, -SdlgSpp, -SdlgNum, -PointType, -Distance,
                       -TransDir, -PlotDir,-Along, -TransEW, -FromTrans, -NSline)
 
 # replace PD and NF seedling status to 0
-Seed$Stat20 <- as.numeric(Seed$Stat20) # fix Stat20 class
-Seed$Stat16 <- as.numeric(Seed$Stat16) # fix Stat16 class
 Seed[Seed=="PD"] <- 0
 Seed[Seed=="NF"] <- 0
 Seed[Seed=="nf"] <- 0
+Seed$Stat20 <- as.numeric(Seed$Stat20) # fix Stat20 class
+Seed$Stat16 <- as.numeric(Seed$Stat16) # fix Stat16 class
 
 # Calculate & format the survival interval
 # 1. Select only seedID and columns with survival data
@@ -229,6 +229,31 @@ for(s in 1:length(seedsToAge)){
 
 # Save data frame with cleaned and aggregated data
 write_csv(seedIntervalAge, "seedIntervalAge_tidy.csv")
+
+
+#####################################################
+#####################################################
+### Create figure of proportion sdlg survival for each year interval
+#####################################################
+
+# using seedInterval data frame which includes seedling data, 
+# indiv characteristics
+# & survival of seedlings across year intervals
+seedSurvival <- seedIntervalAge %>%
+  group_by(interval) %>%
+  summarise(propSurv = sum(survival==1)/n())
+      
+test <- seedIntervalAge %>%
+  filter(interval=="2019-2020")
+
+ggplot(seedSurvival, aes(x=interval, y=propSurv))+
+  geom_bar(stat="identity", fill="skyblue4")+
+  ylim(0,1)+
+  xlab("Survival Year Interval")+
+  ylab("Proportion Seedlings Survived")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=19))
+
 
 #########################################################
 #########################################################

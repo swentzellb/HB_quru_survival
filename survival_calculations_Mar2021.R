@@ -1,12 +1,17 @@
 # Sage Wentzell-Brehme
-# Thesis Data Analysis
-# March 3, 2021
-# QURU sdlg survival at Hubbard Brook valley wide plots 
-# with winter climate data as a survival predictor
+# June 15, 2020
+# Summer Science Research Program
+# Initial Hubbard Brook historical Red Oak seedling survival and health data (2011-2019)
+# UPDATED Sept 8, 2020
+# Thesis data analysis - QURU sdlg survival at Hubbard Brook valley wide plots 
+
+#UPDATED Sept 30, 2020 to include 2020 data
 
 #load packages
 library(tidyverse)
+library(tidyr)
 library(ggplot2)
+library(raster)
 library(lme4)
 library(broom.mixed)
 library(lattice)
@@ -18,17 +23,10 @@ setwd("~/Thesis/HB_quru_survival/data")
 #read in csv files
 Seed <- read_csv("HB_VW_Oak_Trans_Survival_2020_CLEAN.csv") #updated sdlg spreadsheet w/2020 data
 Seed$VW <- paste0("p", Seed$VW) # add p to beginning of VW column
+PlotCoord <- read.csv("../Plot_Table_Basic.csv")
 
 summary(Seed) #summarize the data
 table(is.na(Seed$Stat19)) # determine how many NAs are present
-
-
-# find the total number of alive seedlings in 2019 on the 10 transects
-#test <- Seed %>%
- # filter(VW == "p354" | VW == "p352" | VW =="p351" | VW =="p337"|VW=="p338"
-   #              |VW=="p317"|VW=="p322"|VW=="p379"|VW=="p378"|VW=="p396")
-
-#table(test$Stat19)
 
 #########################################################################
 # Data Cleaning
@@ -90,11 +88,11 @@ Seed <- dplyr::select(seedIDs, -SdlgSpp, -SdlgNum, -PointType, -Distance,
                       -TransDir, -PlotDir,-Along, -TransEW, -FromTrans, -NSline)
 
 # replace PD and NF seedling status to 0
+Seed[Seed=="PD"] <- "0"
+Seed[Seed=="NF"] <- "0"
+Seed[Seed=="nf"] <- "0"
 Seed$Stat20 <- as.numeric(Seed$Stat20) # fix Stat20 class
 Seed$Stat16 <- as.numeric(Seed$Stat16) # fix Stat16 class
-Seed[Seed=="PD"] <- 0
-Seed[Seed=="NF"] <- 0
-Seed[Seed=="nf"] <- 0
 
 # Calculate & format the survival interval
 # 1. Select only seedID and columns with survival data
@@ -233,7 +231,6 @@ for(s in 1:length(seedsToAge)){
 write_csv(seedIntervalAge, "seedIntervalAge_tidy.csv")
 
 
-
 #####################################################
 #####################################################
 ### Create figure of proportion sdlg survival for each year interval
@@ -242,13 +239,11 @@ write_csv(seedIntervalAge, "seedIntervalAge_tidy.csv")
 # using seedInterval data frame which includes seedling data, 
 # indiv characteristics
 # & survival of seedlings across year intervals
-seedSurvival <- seedInterval %>%
+seedSurvival <- seedIntervalAge %>%
   group_by(interval) %>%
-  summarise(sumSurv = sum(survival, na.rm=TRUE),
-            totSeed = n()) %>%
-  mutate(propSurv = sumSurv/totSeed)
-
-seedSurvival <- seedInterval %>%
+  summarise(propSurv = sum(survival==1)/n())
+      
+test <- seedIntervalAge %>%
   filter(interval=="2019-2020")
 
 ggplot(seedSurvival, aes(x=interval, y=propSurv))+
@@ -260,28 +255,6 @@ ggplot(seedSurvival, aes(x=interval, y=propSurv))+
   theme(axis.text.x = element_text(angle=19))
 
 
-### Is this data including the new seedlings? 
-# Need to remove that to look at year to year survival 
-table(seedSurvInt$survival)
-table(Seed$Stat18_19)
-table(seedSurv$Stat17)
-table(seedSurv$Stat18)
-table(seedSurv$Stat19)
-table(seedSurv$Stat20)
-
-#trying with seedSurvInt data frame
-# includes seedlings survival across year intervals
-# includes NA values - may be redundant
-test3 <- seedSurvInt %>%
-  group_by(interval) %>%
-  summarise(propSurv = sum(survival, na.rm=TRUE)/n()) 
-
-test3 <- seedSurvInt %>%
-  group_by(interval) %>%
-  summarise(sumSurv = sum(survival, na.rm=TRUE),
-            totSeed = n()) %>%
-  mutate(propSurv = sumSurv/totSeed)
-
 #########################################################
 #########################################################
 #Statistical Analysis
@@ -291,13 +264,71 @@ test3 <- seedSurvInt %>%
 seedIntervalAge$seedDamage <- as.factor(seedIntervalAge$seedDamage)
 seedInterval$interval <- as.factor(seedInterval$interval)
 
-# seedIntervalAge <- seedIntervalAge %>%
-#   mutate(log_yearsAlive = log(yearsAlive))
-# summary(seedIntervalAge$log_yearsAlive)
+#############
+#Create a model for survival by Leaf number, Damage, Live/Dead Branch ratio, and Age 
+Mod_1 <- glm(survival ~ leafNumber + seedDamage + brchLvD + yearsAlive, data=seedIntervalAge, 
+             family = quasibinomial(logit))
+summary(Mod_1)
 
+# Find model RMSE
+RSS <- c(crossprod(Mod_1$residuals))
+MSE <- RSS / length(Mod_1$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 1.12
+
+############
+#Model for survival by Leaf Number
+Mod_2 <- glm(survival ~ leafNumber, data=seedIntervalAge, family=quasibinomial(logit))
+summary(Mod_2)
+
+# Find model RMSE
+RSS <- c(crossprod(Mod_2$residuals))
+MSE <- RSS / length(Mod_2$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 770201.7
+
+############
+#Model for survival by Leaf Damage
+Mod_3 <- glm(survival ~ seedDamage + interval, data=seedIntervalAge, family=quasibinomial(logit))
+summary(Mod_3)
+
+# Find model RMSE
+RSS <- c(crossprod(Mod_3$residuals))
+MSE <- RSS / length(Mod_3$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 4.15
+
+############
+#Model for survival by Live/Dead Branch Ratio
+Mod_4 <- glm(survival ~ brchLvD, data=seedIntervalAge, family=quasibinomial(logit))
+summary(Mod_4)
+
+# Find model RMSE
+RSS <- c(crossprod(Mod_4$residuals))
+MSE <- RSS / length(Mod_4$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 20.39
+
+############
+#Model for survival by Age
+Mod_5 <- glm(survival ~ yearsAlive, data=seedIntervalAge, family=quasibinomial(logit))
+summary(Mod_5)
+#yearsAlive is significant p-value<0.001
+
+# Find model RMSE
+RSS <- c(crossprod(Mod_5$residuals))
+MSE <- RSS / length(Mod_5$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 2.69
 
 ########################################################################
-########### Add year as a random effect
+#Add year as a random effect
+
+seedIntervalAge <- seedIntervalAge %>%
+  mutate(log_yearsAlive = log(yearsAlive))
+
+summary(seedIntervalAge$log_yearsAlive)
+##########
 #Model for survival by Leaf number and Age with Year interval as a random effect
 M1 <- glmer(survival ~ leafNumber + yearsAlive + (1|interval), 
             data=seedIntervalAge, family="binomial")
@@ -314,6 +345,15 @@ random <- data.frame(ranef(M1))
 require(lattice)
 dotplot(ranef(M1, condVar=TRUE))
 
+
+
+
+
+# Calculate model Root Mean Squared Error (RMSE)
+RSS <- c(crossprod(residuals(M1))) #residual sum of squares
+MSE <- RSS / length(residuals(M1)) #mean squared error
+RMSE <- sqrt(MSE)
+#RMSE = 0.376
 
 ##########
 #Model for survival by Leaf number and Live/Dead Branch ratio 
@@ -476,88 +516,6 @@ M12 <- glmer(survival ~ leafNumber + log(yearsAlive) + (1|interval),
 summary(M11)
 ranef(M11)
 
-####################################################################################
-####################################################################################
-### Winter Climate 
-####################################################################################
-setwd("~/Thesis/HB_quru_survival")
-#snow & soil frost data
-HB_snow <- read.csv("data/HBEF_snowcourse_1956-2020.csv")
-
-# Clean missing data values to NA (-99 = missing)
-HB_snow$snow_depth[HB_snow$snow_depth==-99] <- NA
-HB_snow$swe[HB_snow$swe==-99] <- NA
-HB_snow$frost_depth[HB_snow$frost_depth==-99] <- NA
-HB_snow$frost_pct[HB_snow$frost_pct==-99] <- NA
-
-#check that NA values are correct
-summary(HB_snow)
-
-#subset the data to the HQ site & 2011-2020 winter time period
-HB_snowHQ <- HB_snow %>%
-  filter(Site == "STAHQ", 
-         Date >= as.Date("2011-06-06"))
-
-#summarize climate variables for each winter period at HQ site
-sumHQ <- HB_snowHQ %>%
-  dplyr::group_by(WINTER)%>%
-  summarize(medfrostdepth = median(frost_depth, na.rm=TRUE),
-            sumfrostdepth = sum(frost_depth>=50, na.rm=TRUE),
-            sumsnowdepth = sum(snow_depth>=200, na.rm=TRUE), 
-            medsnowdepth = median(snow_depth, na.rm=TRUE),
-            meansnowdepth = mean(snow_depth, na.rm=TRUE),
-            sdsnowdepth = sd(snow_depth, na.rm=TRUE),
-            medfrostpct = median(frost_pct, na.rm=TRUE))
-
-#########################################################
-#########################################################
-## Combining seedling individual characteristics & survival with winter climate variables
-
-# add a new column to seedIntervalAge data frame referring to winter as a single year
-seedIntervalAge$WINTER <- seedIntervalAge$end_int
-seedIntervalAge$WINTER <- as.integer(seedIntervalAge$WINTER)
-
-# join with summarized winter climate data
-seedIntervalWinter <- left_join(seedIntervalAge, sumHQ, by = "WINTER")
-
-# rescale the median snow depth variable for modeling
-seedIntervalWinter <- seedIntervalWinter %>%
-  mutate(scalemedsnowdepth = scale(medsnowdepth))
-
-cor.test(seedIntervalWinter$medsnowdepth, seedIntervalWinter$sumfrostdepth)
-
-# run model with median snow depth & leafNumber & yearsAlive
-M12 <- glmer(survival ~ leafNumber + yearsAlive + scalemedsnowdepth + (1|interval), 
-             data=seedIntervalWinter, family="binomial")
-summary(M12)
-tidy(M12)
-# show random effects of year interval
-M12_ranef <- data.frame(ranef(M12))
-
-# run model with total number of days with a frost depth > 50mm
-M13 <- glmer(survival ~ leafNumber + yearsAlive + sumfrostdepth + (1|interval),
-             data=seedIntervalWinter, family = "binomial")
-summary(M13)
-tidy(M13)
-ranef(M13)
-
-
-# run model with median snow depth & leafNumber & yearsAlive & sumfrostdepth
-M14 <- glmer(survival ~ leafNumber + yearsAlive + scalemedsnowdepth + sumfrostdepth+ (1|interval),
-               data=seedIntervalWinter, family = "binomial")
-#show model summary
-summary(M14) 
-glance(M14)
-tidy(M14)
-
-# show random effect values of the year interval
-ranef(M14)
-
-require(lattice)
-dotplot(ranef(M14, condVar=TRUE))
-
-ranef_M14 <- data.frame(ranef(M14))
-
 ###################################################
 ##Correlation tests
 
@@ -670,63 +628,4 @@ ggplot(seedIntervalAge, aes(x=leafNumber, y=survival, na.rm=TRUE))+
         axis.text = element_text(size=14))
 #plot(p7)
 
-###########################################################
-###########################################################
-#Statistical Analysis - Models w/o random effects
-###########################################################
 
-#Create a model for survival by Leaf number, Damage, Live/Dead Branch ratio, and Age 
-Mod_1 <- glm(survival ~ leafNumber + seedDamage + brchLvD + yearsAlive, data=seedIntervalAge, 
-             family = quasibinomial(logit))
-summary(Mod_1)
-
-# Find model RMSE
-RSS <- c(crossprod(Mod_1$residuals))
-MSE <- RSS / length(Mod_1$residuals)
-RMSE <- sqrt(MSE)
-#RMSE = 1.12
-
-############
-#Model for survival by Leaf Number
-Mod_2 <- glm(survival ~ leafNumber, data=seedIntervalAge, family=quasibinomial(logit))
-summary(Mod_2)
-
-# Find model RMSE
-RSS <- c(crossprod(Mod_2$residuals))
-MSE <- RSS / length(Mod_2$residuals)
-RMSE <- sqrt(MSE)
-#RMSE = 770201.7
-
-############
-#Model for survival by Leaf Damage
-Mod_3 <- glm(survival ~ seedDamage + interval, data=seedIntervalAge, family=quasibinomial(logit))
-summary(Mod_3)
-
-# Find model RMSE
-RSS <- c(crossprod(Mod_3$residuals))
-MSE <- RSS / length(Mod_3$residuals)
-RMSE <- sqrt(MSE)
-#RMSE = 4.15
-
-############
-#Model for survival by Live/Dead Branch Ratio
-Mod_4 <- glm(survival ~ brchLvD, data=seedIntervalAge, family=quasibinomial(logit))
-summary(Mod_4)
-
-# Find model RMSE
-RSS <- c(crossprod(Mod_4$residuals))
-MSE <- RSS / length(Mod_4$residuals)
-RMSE <- sqrt(MSE)
-#RMSE = 20.39
-
-############
-#Model for survival by Age
-Mod_5 <- glm(survival ~ yearsAlive, data=seedIntervalAge, family=quasibinomial(logit))
-summary(Mod_5)
-#yearsAlive is significant p-value<0.001
-
-# Find model RMSE
-RSS <- c(crossprod(Mod_5$residuals))
-MSE <- RSS / length(Mod_5$residuals)
-RMSE <- sqrt(MSE)
-#RMSE = 2.69
