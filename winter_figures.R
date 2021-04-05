@@ -8,7 +8,7 @@ library(tidyverse)
 library(lubridate)
 library(lme4)
 library(ggplot2)
-
+library(cowplot)
 
 # set working directory
 setwd("~/Thesis/HB_quru_survival")
@@ -194,26 +194,36 @@ sumHQtotal <- sumHQ %>%
             medsumsnowdepth = median(sumsnowdepth, na.rm=TRUE), 
             medsnowdepth = median(medsnowdepth, na.rm=TRUE))
 
+summary(HB_snowHQ)
 
 ##############################################
 #plots of winter climate variables by year
 ##############################################
 
 #plot of number of days with frost depth > 50 mm
-ggplot(data = ranef_winter)+
-  geom_point(mapping=aes(x=WINTER, y=sumfrostdepth))+
+p1 <- ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=WINTER, y=sumfrostdepth), size=2)+
   geom_hline(yintercept=7, linetype="dotted")+
-  theme_bw()
+  theme_bw()+
+  labs(x="Year", y="# days frost depth > 50mm")+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=14))
 
 #plot of median frost depth by year
-ggplot(data = ranef_winter)+
-  geom_point(mapping=aes(x=WINTER, y=medfrostdepth))+
-  theme_bw()
+p2 <- ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=WINTER, y=medfrostdepth), size=2)+
+  theme_bw()+
+  labs(x="Year", y="Median frost depth (mm)")+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=14))
 
-ggplot(data = ranef_winter)+
-  geom_point(mapping=aes(x=WINTER, y=medsnowdepth))+
+p3 <- ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=WINTER, y=medsnowdepth), size=2)+
   geom_hline(yintercept=182.88, linetype="dotted")+
-  theme_bw()
+  theme_bw()+
+  labs(x="Year", y="Median snow depth (mm)")+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=12))
 
 #plot of mean snow depth in mm by year
 ggplot(data = ranef_winter)+
@@ -222,36 +232,58 @@ ggplot(data = ranef_winter)+
   ylim(0,300)
 
 #plot of number of days with snow depth > 200 mm by year
-ggplot(data = ranef_winter)+
-  geom_point(mapping=aes(x=WINTER, y=sumsnowdepth))+
+p4 <- ggplot(data = ranef_winter)+
+  geom_point(mapping=aes(x=WINTER, y=sumsnowdepth), size = 2)+
   geom_hline(yintercept=9, linetype="dotted")+
-  theme_bw()
+  theme_bw()+
+  labs(x="Year", y="# days snow depth > 200 mm")+
+  theme(axis.title = element_text(size=16), 
+                axis.text = element_text(size=12))
+
+
+# combine all into one plot
+plot_grid(p1, p2, p3, p4, rel_heights = c(1, 1), labels = "auto")
 
 
 ################################################
 # plots of ranef vs winter climate variables
 ################################################
 
-ggplot(data = ranef_winter)+
+p5 <- ggplot(data = ranef_winter)+
   geom_point(mapping=aes(x=medfrostdepth, y=condval))+
   theme_bw()+
-  ylab("random effect values")
+  ylab("random effect values")+
+  xlab("median frost depth (mm)")+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=12))
 
-ggplot(data = ranef_winter)+
+p6 <- ggplot(data = ranef_winter)+
   geom_point(mapping=aes(x=medsnowdepth, y=condval))+
   theme_bw()+
   ylab("random effect values")+
-  xlab("median snow depth (mm)")
+  xlab("median snow depth (mm)")+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=12))
 
-ggplot(data = ranef_winter)+
+p7 <- ggplot(data = ranef_winter)+
   geom_point(mapping=aes(x=sumsnowdepth, y=condval))+
   theme_bw()+
-  ylab("random effect values")
+  ylab("random effect values")+
+  xlab("# days snow depth > 200mm")+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=12))
 
-ggplot(data = ranef_winter)+
+p8 <- ggplot(data = ranef_winter)+
   geom_point(mapping=aes(x=sumfrostdepth, y=condval))+
   theme_bw()+
-  ylab("random effect values")
+  ylab("random effect values")+
+  xlab("# days frost depth > 50mm")+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=12))
+
+
+# combine all into one plot
+plot_grid(p5, p6, p7, p8, rel_heights = c(1, 1), labels = "auto")
 
 ###########################################################################
 #correlation between winter climate variables and random effect of survival
