@@ -48,7 +48,7 @@ Seed <- Seed %>% separate(Distance, c("PointType", "Distance"), sep = 1)
 
 #################################################################
 #################################################################
-# Calculate Survival between 2018 and 2019
+# Calculate Survival across year intervals
 #################################################################
 
 # make unique column for seedling ID
@@ -250,9 +250,11 @@ ggplot(seedSurvival, aes(x=interval, y=propSurv))+
   geom_bar(stat="identity", fill="skyblue4")+
   ylim(0,1)+
   xlab("Survival Year Interval")+
-  ylab("Proportion Seedlings Survived")+
+  ylab("Seedlings Survived (proportion)")+
   theme_bw()+
-  theme(axis.text.x = element_text(angle=19))
+  theme(axis.text.x = element_text(angle=290, size = 12),
+        axis.text.y = element_text(size = 12),
+          axis.title = element_text(size=14))
 
 
 #########################################################

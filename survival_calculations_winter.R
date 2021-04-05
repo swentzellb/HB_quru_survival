@@ -90,11 +90,11 @@ Seed <- dplyr::select(seedIDs, -SdlgSpp, -SdlgNum, -PointType, -Distance,
                       -TransDir, -PlotDir,-Along, -TransEW, -FromTrans, -NSline)
 
 # replace PD and NF seedling status to 0
+Seed[Seed=="PD"] <- "0"
+Seed[Seed=="NF"] <- "0"
+Seed[Seed=="nf"] <- "0"
 Seed$Stat20 <- as.numeric(Seed$Stat20) # fix Stat20 class
 Seed$Stat16 <- as.numeric(Seed$Stat16) # fix Stat16 class
-Seed[Seed=="PD"] <- 0
-Seed[Seed=="NF"] <- 0
-Seed[Seed=="nf"] <- 0
 
 # Calculate & format the survival interval
 # 1. Select only seedID and columns with survival data
@@ -242,13 +242,13 @@ write_csv(seedIntervalAge, "seedIntervalAge_tidy.csv")
 # using seedInterval data frame which includes seedling data, 
 # indiv characteristics
 # & survival of seedlings across year intervals
-seedSurvival <- seedInterval %>%
+seedSurvival <- seedIntervalAge %>%
   group_by(interval) %>%
   summarise(sumSurv = sum(survival, na.rm=TRUE),
             totSeed = n()) %>%
   mutate(propSurv = sumSurv/totSeed)
 
-seedSurvival <- seedInterval %>%
+seedSurvival <- seedIntervalAge %>%
   filter(interval=="2019-2020")
 
 ggplot(seedSurvival, aes(x=interval, y=propSurv))+

@@ -73,7 +73,7 @@ Litter <- Litter %>%
 ###Data Cleaning - Cover Substrate
 
 #separate out and create new identifying columns
-Cover_Sub<- Cover_Sub %>% 
+Cover_Sub <- Cover_Sub %>% 
   mutate(Point2 = Point) %>%
   separate(Point2, c("Point2", "PlotDir"), sep="_") %>%
   separate(Point2, c("Distance", "TransDir"), sep = -1) %>%
