@@ -54,7 +54,7 @@ Litter <- Litter %>% separate(Point, c("Distance", "TransDir"), sep = -1)
 #separate and remove point type, plot off transect or on center line of transect, from distance along transect
 Litter <- Litter %>% separate(Distance, c("PointType", "Distance"), sep = 1)
 
-View(Litter)
+# View(Litter)
 
 #Binning
 # Combine PlotTag & TransDir into one unique transect ID
@@ -418,6 +418,12 @@ cor.test(Cover_Surv$ShrubCover_mean, Cover_Surv$Surv_18_19) #p-value 0.1
 #comparing available substrate to abundance
 cor.test(Cover_Surv$Sub_mean, Cover_Surv$Abund19) #p-value 0.49
 
+#comparing available substrate to survival
+cor.test(Cover_Surv$Sub_mean, Cover_Surv$Surv_18_19) #p-value 0.06
+
+#comparing distance to survival
+cor.test(Seed_Dist$HQdist, Seed_Dist$Surv_18_19) #p-value 0.34
+
 #comparing canopy cover photos and shrub cover
 cor.test(Can_Cover_Surv$ShrubCover_mean, Can_Cover_Surv$PerCnpyOpenTotal) #p-value 0.6
 
@@ -546,7 +552,7 @@ Seed2$predLvs <- 1 / (1 + exp(coef(log_model_2)["b"] * (Seed2$Lvs18 - coef(log_m
 ##############################################################################################
 ##############################################################################################
 ## Plotting
-
+library(cowplot)
 #PLOT 1 
 #plot of mean shrub cover at 20m bins by percent seedling survival 2018-2019
 p1 <- ggplot(Cover_Surv, aes(x=ShrubCover_mean, y=Surv_18_19))+
@@ -567,6 +573,18 @@ ggplot(Cover_Surv, aes(x=Sub_mean, y=Abund19))+
   labs(x="% Available Substrate",
        y="Number of Seedlings")+
   theme_light()
+
+#plot of mean available substrate/ground surface cover by seedling survival 2018-2019
+p2 <- ggplot(Cover_Surv, aes(x=Sub_mean, y=Surv_18_19))+
+  geom_point(size=3)+
+  labs(x="Ground surface cover (%)",
+       y="Seedling survival (proportion)")+
+  theme_classic()+
+  theme(axis.title = element_text(size=16), 
+        axis.text = element_text(size=14))
+plot(p2)
+
+
 
 #PLOT 3
 #plot of 2019 seedling abundance by plot distance to entrance of valley
@@ -601,7 +619,7 @@ plot(p4)
 #PLOT 5
 #plot of canopy cover (photos) at 20m bins by % sdlg survival 2018-2019
 p5 <- ggplot(Can_Cover_Surv, aes(x=PerCnpyOpenTotal, y=Surv_18_19))+
-  geom_point()+
+  geom_point(size=3)+
   labs(x="Light Availability (%)",
        y="Seedling Survival (proportion)")+
   theme_classic()+
@@ -610,6 +628,9 @@ p5 <- ggplot(Can_Cover_Surv, aes(x=PerCnpyOpenTotal, y=Surv_18_19))+
 
 plot(p5)
 
+
+#combine all into one plot
+plot_grid(p1, p2, p4, p5, rel_heights = c(1, 1), labels = "auto")
 
 #####################################################
 ## Plot Indiv Sdlg Survival by Characteristic variables 

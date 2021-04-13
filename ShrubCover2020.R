@@ -95,6 +95,40 @@ Seed$PlotTag <- Seed$VW
 #######################################################################################################
 # Calculate Survival between 2018 and 2019
 #######################################################################################################
+# make unique column for seedling ID
+seedIDs <- mutate(Seed, seedID = paste(VW,SdlgNum,TransDir,Distance,sep="-"))
+
+
+# find seedling duplicates: 1. count/tag duplicates based on seedID, 
+# 2. join duplicate tags back to seedIDs data frame
+# 3. filter to duplicate seedlings
+find_duplicates <- seedIDs %>% 
+  group_by(seedID) %>%
+  summarize(count = n(),
+            dups = ifelse(count>1,T,F)) %>%
+  right_join(seedIDs) %>%
+  filter(dups == T)
+
+# We can decide what to do with duplicates later - 
+# for now I'll keep rows where Surv20 not equal to 0
+# 1. remove_dups gets row numbers (index) where duplicates & Surv 2020 = 0 (keep 1/PD)
+# 2. make duplicate rows NA in data frame and filter out NA rows
+remove_dups <- which(seedIDs$seedID %in% find_duplicates$seedID & seedIDs$Stat20 == 0)
+d <- rep(NA, ncol(seedIDs))
+d_df <- do.call("rbind", replicate(6, d, simplify = FALSE))
+seedIDs[remove_dups,] <- d_df
+seedIDs <- filter(seedIDs, !is.na(seedID))
+
+# test to make sure there aren't duplicates again
+length(seedIDs$seedID) #1369
+length(unique(seedIDs$seedID)) #1369 - we're good
+
+# move edited data frame back to Seed name, remove some extraneous columns
+Seed <- dplyr::select(seedIDs, -SdlgSpp, -SdlgNum, -PointType,-Along, -TransEW, -FromTrans, -NSline)
+
+
+
+
 
 # create test variables equal to seedling status variables for each yr
 Seed$Stat19test <- Seed$Stat19
@@ -104,10 +138,13 @@ Seed$Stat18test <- Seed$Stat18
 Seed$Stat19test[Seed$Stat19=="PD"| is.na(Seed$Stat19test)] <- 0
 
 # change PD and NAs in 2018 column to 0
-Seed$Stat18test[is.na(Seed$Stat18test) | Seed$Stat18=="PD"] <- 0 
+Seed$Stat18test[is.na(Seed$Stat18test) | Seed$Stat18=="PD" |
+                  Seed$Stat18=="NF"] <- 0 
 
 #check all NAs have been removed
 table(is.na(Seed$Stat18test))
+
+table(Seed$Stat19test)
 
 # change class to numeric
 Seed$Stat18test <- as.numeric(Seed$Stat18test)
@@ -172,7 +209,6 @@ Surv_18_19 <- Seed %>%
             /sum(Stat18test==1, na.rm=TRUE), # divide by all live seedlings from 2018
             Count18 = sum(Stat18test==1),
             Count19 = sum(Stat19test==1)) # add column for count of live seedlings at plot in 2019
-
 
 
 ################################################################################################################

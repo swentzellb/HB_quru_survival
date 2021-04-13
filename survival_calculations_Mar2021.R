@@ -231,6 +231,7 @@ for(s in 1:length(seedsToAge)){
 write_csv(seedIntervalAge, "seedIntervalAge_tidy.csv")
 
 
+
 #####################################################
 #####################################################
 ### Create figure of proportion sdlg survival for each year interval
@@ -241,7 +242,8 @@ write_csv(seedIntervalAge, "seedIntervalAge_tidy.csv")
 # & survival of seedlings across year intervals
 seedSurvival <- seedIntervalAge %>%
   group_by(interval) %>%
-  summarise(propSurv = sum(survival==1)/n())
+  summarise(propSurv = sum(survival==1)/n(),
+            abund = n())
       
 test <- seedIntervalAge %>%
   filter(interval=="2019-2020")

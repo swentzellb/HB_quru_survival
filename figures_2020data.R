@@ -26,7 +26,7 @@ Seed$VW <- paste0("p", Seed$VW) # add p to beginning of VW column (same as PlotT
 # historical survival data
 Litter <- read.csv("HB_VW_Oak_Trans_Enviro_Litter_CLEAN.csv") 
 #refers to leaf litter layer
-Cover_Sub <- read.csv("HB_VW_Oak_Trans_ShrubCover_2020_CLEAN.csv") 
+Cover_Sub <- read.csv("HB_VW_Oak_Trans_ShrubCover_2020_CLEAN.csv", header=TRUE,  fileEncoding = "UTF-8-BOM") 
 #refers to canopy and shrub cover and substrate
 Prism <- read.csv("HB_VW_Oak_Trans_Enviro_Prism_CLEAN.csv")
 #refers to basal area prism - used to measure mature tree community
@@ -54,7 +54,7 @@ Litter <- Litter %>% separate(Point, c("Distance", "TransDir"), sep = -1)
 #separate and remove point type, plot off transect or on center line of transect, from distance along transect
 Litter <- Litter %>% separate(Distance, c("PointType", "Distance"), sep = 1)
 
-View(Litter)
+# View(Litter)
 
 #Binning
 # Combine PlotTag & TransDir into one unique transect ID
@@ -294,9 +294,8 @@ Seed_Bin_Enviro <- Seed %>%
 
 #summarize Canopy Cover densio, Shrub Cover and Available Substrate to 20m bins
 Cover_Sub_Bin <- Cover_Sub %>%
-  group_by(PlotTag, PlotTrans, DistBin)%>%
-  summarize(CanCover_mean = mean(CanopyCover, na.rm=TRUE),
-            ShrubCover_mean = mean(ShrubCover, na.rm=TRUE), 
+  group_by(PlotTrans, DistBin)%>%
+  summarize(ShrubCover_mean = mean(ShrubCover, na.rm=TRUE), 
             Sub_mean = mean(Litter, na.rm=TRUE))%>%
   mutate(PlotTransBin = paste(PlotTrans, DistBin, sep = "_"))
 
