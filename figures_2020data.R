@@ -459,6 +459,8 @@ cor.test(Cover_Surv$CanCover_mean, Cover_Surv$Surv_18_19) #p-value 0.2
 #comparing shrub cover to survival
 cor.test(Cover_Surv$ShrubCover_mean, Cover_Surv$Surv_18_19) #p-value 0.1
 
+cor.test(Seed_Dist$HQdist, Seed_Dist$Surv_18_19)
+
 #comparing available substrate to abundance
 cor.test(Cover_Surv$Sub_mean, Cover_Surv$Abund19) #p-value 0.49
 
@@ -527,6 +529,10 @@ Mod9 <- glm(Surv_18_19 ~ ShrubCover_mean + Abund18 + PerCnpyOpenTotal, data=Can_
             family = quasibinomial(logit))
 summary(Mod9)
 
+
+Mod10 <- glm(Surv_18_19 ~ ShrubCover_mean, data=Can_Cover_Surv,
+            family = quasibinomial(logit))
+summary(Mod10)
 #########################################################################
 ## Individual Sdlg Survival Modeling
 
