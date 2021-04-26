@@ -620,7 +620,7 @@ ggplot(seedIntervalAge, aes(x=yearsAlive, y=survival, na.rm=TRUE))+
 
 
 #Plot
-#plot yearsAlive (or age of seedling) by survival status 
+#plot leafNumber by survival status 
 #multi year model - includes 2011-2020
 ggplot(seedIntervalAge, aes(x=leafNumber, y=survival, na.rm=TRUE))+
   scale_y_continuous(breaks=c(0, 0.5, 1.0))+

@@ -509,6 +509,10 @@ sumHQ <- HB_snowHQ %>%
             sdsnowdepth = sd(snow_depth, na.rm=TRUE),
             medfrostpct = median(frost_pct, na.rm=TRUE))
 
+
+
+
+
 #########################################################
 #########################################################
 ## Combining seedling individual characteristics & survival with winter climate variables

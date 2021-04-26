@@ -673,7 +673,7 @@ p6 <- ggplot(Seed2, aes(x=Age18, y=Stat18_19))+
   geom_line(aes(y=predAge), size=1)+
   labs(y="Survival", x="Age")+
   theme(axis.title = element_text(size=16), 
-        axis.text = element_text(size=14))
+        axis.text = element_text(size=13))
 plot(p6)
 
 #save plot
@@ -688,7 +688,7 @@ p7<- ggplot(Seed2, aes(x=Lvs18, y=Stat18_19))+
   geom_line(aes(y=predLvs), size=1)+
   labs(y="Survival", x="Number of leaves")+
   theme(axis.title = element_text(size=16), 
-        axis.text = element_text(size=14))
+        axis.text = element_text(size=13))
 plot(p7)
 
 # save plot
@@ -705,7 +705,7 @@ Damage <- Seed2 %>%
 
 #create plot 
 Damage$Damage18 <- as.factor(Damage$Damage18)
-ggplot(Damage, aes(x=Damage18, y=Surv_18_19))+
+p8 <- ggplot(Damage, aes(x=Damage18, y=Surv_18_19))+
   geom_bar(stat="Identity")+
   coord_cartesian(ylim=c(0,1))+
   labs(x="Leaf damage rating", y="Seedling survival (proportion)")+
@@ -713,7 +713,16 @@ ggplot(Damage, aes(x=Damage18, y=Surv_18_19))+
   scale_x_discrete(breaks =c("0", "1", "2", "3", "4"), 
                    labels = c("0%", "1-25%", "26-50%","51-75%","76-100%"))+
   theme(axis.title = element_text(size=16), 
-        axis.text = element_text(size=14))
+        axis.text = element_text(size=13))
+plot(p8)
+
+library(cowplot)
+# combine all into one plot
+plot_grid(p6, p7, p8, rel_heights = c(1, 1), labels = "auto")
+
+aligned_plots <- align_plots(p6, p7, p8, align=c("h"), greedy=TRUE)
+
+
 
 #plot damage by survival summarized to plot level
 ggplot(Seed_Bin3, aes(x=MeanDamage18, y=Surv_18_19))+
