@@ -128,6 +128,7 @@ Seed <- Seed %>% separate(Point, c("Point", "PlotDir"), sep="_") %>%
 Seed$Lvs18 <- as.numeric(Seed$Lvs18)
 Seed$Hgt18 <- as.numeric(Seed$Hgt18)
 
+
 ##########################################################################################
 #Binning
 
@@ -299,86 +300,6 @@ Cover_Sub_Bin <- Cover_Sub %>%
             Sub_mean = mean(Litter, na.rm=TRUE))%>%
   mutate(PlotTransBin = paste(PlotTrans, DistBin, sep = "_"))
 
-# summarize Leaf litter to 20m bins
-Litter_Bin <- Litter %>%
-  group_by(PlotTag, PlotTrans, DistBin)%>%
-  summarize(Plottotal= sum(Total, na.rm=TRUE), #total number of leaves for plot
-            ACRUsum = sum(ACRU, na.rm=TRUE), # sum of leaves by species for plot
-            ACRUper = ACRUsum/Plottotal,     # percentage of leaves by species for plot
-            FAGRsum = sum(FAGR, na.rm=TRUE),
-            FAGRper = FAGRsum/Plottotal,
-            BEALsum = sum(BEAL, na.rm=TRUE),
-            BEALper = BEALsum/Plottotal,
-            ACSAsum = sum(ACSA, na.rm=TRUE),
-            ACSAper = ACSAsum/Plottotal,
-            ACPEsum = sum(ACPE, na.rm=TRUE),
-            ACPEper = ACPEsum/Plottotal,
-            BEPAsum = sum(BEPA, na.rm=TRUE),
-            BEPAper = BEPAsum/Plottotal,
-            FRAMsum = sum(FRAM, na.rm=TRUE),
-            FRAMper = FRAMsum/Plottotal,
-            POGRsum = sum(POGR, na.rm=TRUE),
-            POGRper = POGRsum/Plottotal,
-            VIALsum = sum(VIAL, na.rm=TRUE),
-            VIALper = VIALsum/Plottotal)%>%
-  mutate(PlotTransBin = paste(PlotTrans, DistBin, sep = "_"))  #add 20m bin identifier
-
-#############################################################################
-#############################################################################
-#### Basal Area Prism data
-
-# summarize Basal Area prism data: mature tree community to 20m bins
-Prism_Bin <- Prism %>%
-  group_by(PlotTransBin)%>%
-  summarize(Plottotal = sum(Total),              # total number of trees per plot
-            TSCAsum = sum(TSCA, na.rm=TRUE),     # number of trees by species per plot
-            FAGRsum = sum(FAGR, na.rm=TRUE),
-            ACRUsum = sum(ACRU, na.rm=TRUE),
-            BEALsum = sum(BEAL, na.rm=TRUE),
-            PIRUsum = sum(PIRU, na.rm=TRUE),
-            BEPAsum = sum(BEPA, na.rm=TRUE),
-            FRAMsum = sum(FRAM, na.rm=TRUE),
-            ACSAsum = sum(ACSA, na.rm=TRUE),
-            PISTsum = sum(PIST, na.rm=TRUE),
-            ACSPsum = sum(ACSP, na.rm=TRUE),
-            ACPEsum = sum(ACPE, na.rm=TRUE),
-            POGRsum = sum(POGR, na.rm=TRUE), 
-            TSCAper = TSCAsum/Plottotal,        # percentage of species per plot
-            FAGRper = FAGRsum/Plottotal,
-            ACRUper = ACRUsum/Plottotal,
-            BEALper = BEALsum/Plottotal,
-            PIRUper = PIRUsum/Plottotal,
-            BEPAper = BEPAsum/Plottotal,
-            FRAMper = FRAMsum/Plottotal,
-            ACSAper = ACSAsum/Plottotal,
-            PISTper = PISTsum/Plottotal,
-            ACSPper = ACSPsum/Plottotal,
-            ACPEper = ACPEsum/Plottotal,
-            POGRper = POGR, na.rm=TRUE)
-
-
-#summarize all the total tree abundances by species
-Prism_Abund <- Prism %>%
-  summarise(TSCA = sum(TSCA, na.rm=TRUE),
-            FAGR = sum(FAGR, na.rm=TRUE),
-            ACRU = sum(ACRU, na.rm=TRUE),
-            BEAL = sum(BEAL, na.rm=TRUE),
-            PIRU = sum(PIRU, na.rm=TRUE),
-            BEPA = sum(BEPA, na.rm=TRUE),
-            FRAM = sum(FRAM, na.rm=TRUE),
-            ACSA = sum(ACSA, na.rm=TRUE),
-            PIST = sum(PIST, na.rm=TRUE),
-            ACSP = sum(ACSP, na.rm=TRUE),
-            ACPE = sum(ACPE, na.rm=TRUE),
-            POGR = sum(POGR, na.rm=TRUE))
-
-#reshape the dataframe
-Prism_Abund <-gather(Prism_Abund, `TSCA`, `FAGR`, `ACRU`,`BEAL`,
-                     `PIRU`, `BEPA`, `FRAM`, `ACSA`, `PIST`, `ACSP`,
-                     `ACPE`, `POGR`,
-                     key = "Species", value = "Abund")
-
-
 #################################################################################
 #################################################################################
 #Add in Distance data - converting from UTM 
@@ -459,6 +380,7 @@ cor.test(Cover_Surv$CanCover_mean, Cover_Surv$Surv_18_19) #p-value 0.2
 #comparing shrub cover to survival
 cor.test(Cover_Surv$ShrubCover_mean, Cover_Surv$Surv_18_19) #p-value 0.1
 
+#comparing distance to survival
 cor.test(Seed_Dist$HQdist, Seed_Dist$Surv_18_19)
 
 #comparing available substrate to abundance
@@ -564,6 +486,56 @@ stepAIC(M3) # check model fit
 #Test model fit - compare single variable models
 M4 <- glm(Stat18_19 ~ as.factor(Damage18), data = Seed2, family ="binomial")
 summary(M4)
+
+# Mtest <- glm(Stat18_19 ~ Damage18, data = Seed2, family ="binomial")
+# summary(Mtest)
+
+## find means & sd survival for each damage category
+Dam_0 <- Seed2 %>%
+  filter(Damage18=="0") %>% 
+  summarize(meanDam18 = mean(Stat18_19), 
+            sdDam18 = sd(Stat18_19))
+
+Dam_1 <- Seed2 %>%
+  filter(Damage18=="1") %>% 
+  summarize(meanDam1 = mean(Stat18_19), 
+            sdDam1 = sd(Stat18_19))
+
+Dam_2 <- Seed2 %>%
+  filter(Damage18=="2") %>% 
+  summarize(meanDam2 = mean(Stat18_19), 
+            sdDam2 = sd(Stat18_19))
+
+Dam_3 <- Seed2 %>%
+  filter(Damage18=="3") %>% 
+  summarize(meanDam3 = mean(Stat18_19), 
+            sdDam3 = sd(Stat18_19))
+
+Dam_4 <- Seed2 %>%
+  filter(Damage18=="4") %>% 
+  summarize(meanDam4 = mean(Stat18_19), 
+            sdDam4 = sd(Stat18_19))
+
+low <- c("0","1","2")
+
+Dam_low <- Seed2 %>%
+  filter(Damage18==low) %>% 
+  summarize(meanDamlow = mean(Stat18_19), 
+            sdDamlow = sd(Stat18_19))
+
+
+high <- c("3","4")
+
+Dam_high <- Seed2 %>%
+  filter(Damage18==high) %>% 
+  summarize(meanDamhigh = mean(Stat18_19), 
+            sdDamhigh = sd(Stat18_19))
+
+
+
+test <- aov(Stat18_19 ~ as.factor(Damage18), data = Seed2)
+summary(test)
+
 TukeyHSD(aov(M4)) # compare categories 
 
 M5 <- glm(Stat18_19 ~ Lvs18, data = Seed2, family ="binomial")
@@ -779,6 +751,93 @@ ggplot(Age, aes(x=Age18, y=Surv_18_19))+
 #plot age by sdlg abundance
 ggplot(Seed2, aes(x=Age18, y=Stat18_19))+
   geom_bar(stat="Identity")
+
+
+
+
+
+#############################################################################
+#############################################################################
+## Leaf litter data
+# summarize Leaf litter to 20m bins
+Litter_Bin <- Litter %>%
+  group_by(PlotTag, PlotTrans, DistBin)%>%
+  summarize(Plottotal= sum(Total, na.rm=TRUE), #total number of leaves for plot
+            ACRUsum = sum(ACRU, na.rm=TRUE), # sum of leaves by species for plot
+            ACRUper = ACRUsum/Plottotal,     # percentage of leaves by species for plot
+            FAGRsum = sum(FAGR, na.rm=TRUE),
+            FAGRper = FAGRsum/Plottotal,
+            BEALsum = sum(BEAL, na.rm=TRUE),
+            BEALper = BEALsum/Plottotal,
+            ACSAsum = sum(ACSA, na.rm=TRUE),
+            ACSAper = ACSAsum/Plottotal,
+            ACPEsum = sum(ACPE, na.rm=TRUE),
+            ACPEper = ACPEsum/Plottotal,
+            BEPAsum = sum(BEPA, na.rm=TRUE),
+            BEPAper = BEPAsum/Plottotal,
+            FRAMsum = sum(FRAM, na.rm=TRUE),
+            FRAMper = FRAMsum/Plottotal,
+            POGRsum = sum(POGR, na.rm=TRUE),
+            POGRper = POGRsum/Plottotal,
+            VIALsum = sum(VIAL, na.rm=TRUE),
+            VIALper = VIALsum/Plottotal)%>%
+  mutate(PlotTransBin = paste(PlotTrans, DistBin, sep = "_"))  #add 20m bin identifier
+
+#############################################################################
+#############################################################################
+#### Basal Area Prism data
+
+# summarize Basal Area prism data: mature tree community to 20m bins
+Prism_Bin <- Prism %>%
+  group_by(PlotTransBin)%>%
+  summarize(Plottotal = sum(Total),              # total number of trees per plot
+            TSCAsum = sum(TSCA, na.rm=TRUE),     # number of trees by species per plot
+            FAGRsum = sum(FAGR, na.rm=TRUE),
+            ACRUsum = sum(ACRU, na.rm=TRUE),
+            BEALsum = sum(BEAL, na.rm=TRUE),
+            PIRUsum = sum(PIRU, na.rm=TRUE),
+            BEPAsum = sum(BEPA, na.rm=TRUE),
+            FRAMsum = sum(FRAM, na.rm=TRUE),
+            ACSAsum = sum(ACSA, na.rm=TRUE),
+            PISTsum = sum(PIST, na.rm=TRUE),
+            ACSPsum = sum(ACSP, na.rm=TRUE),
+            ACPEsum = sum(ACPE, na.rm=TRUE),
+            POGRsum = sum(POGR, na.rm=TRUE), 
+            TSCAper = TSCAsum/Plottotal,        # percentage of species per plot
+            FAGRper = FAGRsum/Plottotal,
+            ACRUper = ACRUsum/Plottotal,
+            BEALper = BEALsum/Plottotal,
+            PIRUper = PIRUsum/Plottotal,
+            BEPAper = BEPAsum/Plottotal,
+            FRAMper = FRAMsum/Plottotal,
+            ACSAper = ACSAsum/Plottotal,
+            PISTper = PISTsum/Plottotal,
+            ACSPper = ACSPsum/Plottotal,
+            ACPEper = ACPEsum/Plottotal,
+            POGRper = POGR, na.rm=TRUE)
+
+
+#summarize all the total tree abundances by species
+Prism_Abund <- Prism %>%
+  summarise(TSCA = sum(TSCA, na.rm=TRUE),
+            FAGR = sum(FAGR, na.rm=TRUE),
+            ACRU = sum(ACRU, na.rm=TRUE),
+            BEAL = sum(BEAL, na.rm=TRUE),
+            PIRU = sum(PIRU, na.rm=TRUE),
+            BEPA = sum(BEPA, na.rm=TRUE),
+            FRAM = sum(FRAM, na.rm=TRUE),
+            ACSA = sum(ACSA, na.rm=TRUE),
+            PIST = sum(PIST, na.rm=TRUE),
+            ACSP = sum(ACSP, na.rm=TRUE),
+            ACPE = sum(ACPE, na.rm=TRUE),
+            POGR = sum(POGR, na.rm=TRUE))
+
+#reshape the dataframe
+Prism_Abund <-gather(Prism_Abund, `TSCA`, `FAGR`, `ACRU`,`BEAL`,
+                     `PIRU`, `BEPA`, `FRAM`, `ACSA`, `PIST`, `ACSP`,
+                     `ACPE`, `POGR`,
+                     key = "Species", value = "Abund")
+
 
 #plot of total abundances of mature tree species - BA Prism data
 ggplot(Prism_Abund, aes(x=reorder(Species, -Abund), y=Abund))+

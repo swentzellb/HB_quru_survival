@@ -163,6 +163,7 @@ seedBrch <- pivot_longer(seedBrch, !seedID, names_to = "interval",
 seedInterval <- left_join(seedSurvInt, seedLvs) %>%
   left_join(seedDmg) %>%
   left_join(seedBrch) %>%
+  left_join(seedHgt) %>% 
   filter(!is.na(survival)) # remove lines where survival is NA
 
 # Find the seedling age in each interval based on birth year
@@ -232,6 +233,13 @@ for(s in 1:length(seedsToAge)){
 # Save data frame with cleaned and aggregated data
 write_csv(seedIntervalAge, "seedIntervalAge_tidy.csv")
 
+################################################################
+# summarize variables
+summary(seedIntervalAge$leafNumber, na.rm=TRUE)
+sd(seedIntervalAge$leafNumber, na.rm=TRUE)
+sd(seedIntervalAge$seedDamage, na.rm=TRUE)
+sd(seedIntervalAge$yearsAlive, na.rm=TRUE)
+sd(seedIntervalAge$brchLvD, na.rm=TRUE)
 
 
 #####################################################
@@ -734,3 +742,14 @@ RSS <- c(crossprod(Mod_5$residuals))
 MSE <- RSS / length(Mod_5$residuals)
 RMSE <- sqrt(MSE)
 #RMSE = 2.69
+
+
+#############################################################
+#############################################################
+## look at AIC values
+# library(AICcmodavg)
+# 
+# model.set <- list(one.way, two.way, interaction, blocking)
+# model.names <- c("one.way", "two.way", "interaction", "blocking")
+# 
+# aictab(model.set, modnames = model.names)
