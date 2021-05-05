@@ -377,6 +377,7 @@ M7 <- glmer(survival ~ leafNumber + (1|interval),
             data=seedIntervalAge, family = "binomial")
 summary(M7)
 ranef(M7)
+glance(M7)
 
 # Calculate model Root Mean Squared Error (RMSE)
 RSS <- c(crossprod(residuals(M7))) #residual sum of squares
@@ -392,6 +393,7 @@ M8 <- glmer(survival ~ yearsAlive + (1|interval),
             data=seedIntervalAge, family = "binomial")
 summary(M8)
 ranef(M8)
+glance(M8)
 
 # Calculate model Root Mean Squared Error (RMSE)
 RSS <- c(crossprod(residuals(M8))) #residual sum of squares
@@ -450,6 +452,11 @@ M12 <- glmer(survival ~ leafNumber + log(yearsAlive) + (1|interval),
              data=seedIntervalAge, family = "binomial")
 summary(M11)
 ranef(M11)
+
+
+nullMod <- glmer(survival ~ 1 + (1|interval), data=seedIntervalAge, family="binomial")
+summary(nullMod)
+glance(nullMod)
 
 ###################################################
 ##Correlation tests
