@@ -9,12 +9,10 @@
 
 #load packages
 library(tidyverse)
-library(tidyr)
 library(ggplot2)
 library(raster)
 library(lme4)
 library(broom.mixed)
-library(lattice)
 
 
 #set working directory
@@ -268,70 +266,10 @@ ggplot(seedSurvival, aes(x=interval, y=propSurv))+
 seedIntervalAge$seedDamage <- as.factor(seedIntervalAge$seedDamage)
 seedInterval$interval <- as.factor(seedInterval$interval)
 
-#############
-#Create a model for survival by Leaf number, Damage, Live/Dead Branch ratio, and Age 
-Mod_1 <- glm(survival ~ leafNumber + seedDamage + brchLvD + yearsAlive, data=seedIntervalAge, 
-             family = quasibinomial(logit))
-summary(Mod_1)
-
-# Find model RMSE
-RSS <- c(crossprod(Mod_1$residuals))
-MSE <- RSS / length(Mod_1$residuals)
-RMSE <- sqrt(MSE)
-#RMSE = 1.12
-
-############
-#Model for survival by Leaf Number
-Mod_2 <- glm(survival ~ leafNumber, data=seedIntervalAge, family=quasibinomial(logit))
-summary(Mod_2)
-
-# Find model RMSE
-RSS <- c(crossprod(Mod_2$residuals))
-MSE <- RSS / length(Mod_2$residuals)
-RMSE <- sqrt(MSE)
-#RMSE = 770201.7
-
-############
-#Model for survival by Leaf Damage
-Mod_3 <- glm(survival ~ seedDamage + interval, data=seedIntervalAge, family=quasibinomial(logit))
-summary(Mod_3)
-
-# Find model RMSE
-RSS <- c(crossprod(Mod_3$residuals))
-MSE <- RSS / length(Mod_3$residuals)
-RMSE <- sqrt(MSE)
-#RMSE = 4.15
-
-############
-#Model for survival by Live/Dead Branch Ratio
-Mod_4 <- glm(survival ~ brchLvD, data=seedIntervalAge, family=quasibinomial(logit))
-summary(Mod_4)
-
-# Find model RMSE
-RSS <- c(crossprod(Mod_4$residuals))
-MSE <- RSS / length(Mod_4$residuals)
-RMSE <- sqrt(MSE)
-#RMSE = 20.39
-
-############
-#Model for survival by Age
-Mod_5 <- glm(survival ~ yearsAlive, data=seedIntervalAge, family=quasibinomial(logit))
-summary(Mod_5)
-#yearsAlive is significant p-value<0.001
-
-# Find model RMSE
-RSS <- c(crossprod(Mod_5$residuals))
-MSE <- RSS / length(Mod_5$residuals)
-RMSE <- sqrt(MSE)
-#RMSE = 2.69
-
 ########################################################################
 #Add year as a random effect
 
-seedIntervalAge <- seedIntervalAge %>%
-  mutate(log_yearsAlive = log(yearsAlive))
 
-summary(seedIntervalAge$log_yearsAlive)
 ##########
 #Model for survival by Leaf number and Age with Year interval as a random effect
 M1 <- glmer(survival ~ leafNumber + yearsAlive + (1|interval), 
@@ -344,13 +282,6 @@ coef(M1)
 
 #make random effects data into a data frame
 random <- data.frame(ranef(M1))
-
-#plot random effects by interval
-require(lattice)
-dotplot(ranef(M1, condVar=TRUE))
-
-
-
 
 
 # Calculate model Root Mean Squared Error (RMSE)
@@ -632,4 +563,67 @@ ggplot(seedIntervalAge, aes(x=leafNumber, y=survival, na.rm=TRUE))+
         axis.text = element_text(size=14))
 #plot(p7)
 
+
+
+#################################################################
+#################################################################
+## GLMs without random effects - not as useful 
+
+
+#############
+#Create a model for survival by Leaf number, Damage, Live/Dead Branch ratio, and Age 
+Mod_1 <- glm(survival ~ leafNumber + seedDamage + brchLvD + yearsAlive, data=seedIntervalAge, 
+             family = quasibinomial(logit))
+summary(Mod_1)
+
+# Find model RMSE
+RSS <- c(crossprod(Mod_1$residuals))
+MSE <- RSS / length(Mod_1$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 1.12
+
+############
+#Model for survival by Leaf Number
+Mod_2 <- glm(survival ~ leafNumber, data=seedIntervalAge, family=quasibinomial(logit))
+summary(Mod_2)
+
+# Find model RMSE
+RSS <- c(crossprod(Mod_2$residuals))
+MSE <- RSS / length(Mod_2$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 770201.7
+
+############
+#Model for survival by Leaf Damage
+Mod_3 <- glm(survival ~ seedDamage + interval, data=seedIntervalAge, family=quasibinomial(logit))
+summary(Mod_3)
+
+# Find model RMSE
+RSS <- c(crossprod(Mod_3$residuals))
+MSE <- RSS / length(Mod_3$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 4.15
+
+############
+#Model for survival by Live/Dead Branch Ratio
+Mod_4 <- glm(survival ~ brchLvD, data=seedIntervalAge, family=quasibinomial(logit))
+summary(Mod_4)
+
+# Find model RMSE
+RSS <- c(crossprod(Mod_4$residuals))
+MSE <- RSS / length(Mod_4$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 20.39
+
+############
+#Model for survival by Age
+Mod_5 <- glm(survival ~ yearsAlive, data=seedIntervalAge, family=quasibinomial(logit))
+summary(Mod_5)
+#yearsAlive is significant p-value<0.001
+
+# Find model RMSE
+RSS <- c(crossprod(Mod_5$residuals))
+MSE <- RSS / length(Mod_5$residuals)
+RMSE <- sqrt(MSE)
+#RMSE = 2.69
 

@@ -56,34 +56,34 @@ table(HB_snow$Site)
 
 
 #another supplemental table showing # of data points in each yr
-# FIX THIS
+
 Fig1 <- HB_snowHQ %>%
-   select(WINTER, snow_depth) %>%
+   dplyr::select(WINTER, snow_depth) %>%
    filter(na.rm=TRUE) %>%
    group_by(WINTER) %>%
    summarise(count = n())
 
 Fig2 <- HB_snowW1 %>%
-  select(WINTER, snow_depth) %>%
+  dplyr::select(WINTER, snow_depth) %>%
   filter(na.rm=TRUE) %>%
   group_by(WINTER) %>%
   summarise(count = n())
 
 
 snowdepthsum <- HB_snowHQ %>%
-  select(WINTER, snow_depth) %>%
+  dplyr::select(WINTER, snow_depth) %>%
   filter(na.rm=TRUE) %>%
   group_by(WINTER) %>%
   summarise(count = n())
 
 frostdepthsum <- HB_snowHQ %>%
-  select(WINTER, frost_depth) %>%
+  dplyr::select(WINTER, frost_depth) %>%
   filter(na.rm=TRUE) %>%
   group_by(WINTER) %>%
   summarise(count = n())
 
 frostpctsum <- HB_snowHQ %>%
-  select(WINTER, frost_pct) %>%
+  dplyr::select(WINTER, frost_pct) %>%
   filter(na.rm=TRUE) %>%
   group_by(WINTER) %>%
   summarise(count = n())
@@ -179,6 +179,7 @@ table(HB_snow$Date)
 
 # add in additional column for singular year rather than interval for WINTER
 random$WINTER <- seq(2013,2020)
+
 #
 ran <- random %>%
   mutate(WINTER = seq(2013,2020)) %>%
@@ -208,6 +209,7 @@ p1 <- ggplot(data = ranef_winter)+
   labs(x="Year", y="# days frost depth > 50mm")+
   theme(axis.title = element_text(size=16), 
         axis.text = element_text(size=14))
+p1
 
 #plot of median frost depth by year
 p2 <- ggplot(data = ranef_winter)+
@@ -216,6 +218,7 @@ p2 <- ggplot(data = ranef_winter)+
   labs(x="Year", y="Median frost depth (mm)")+
   theme(axis.title = element_text(size=16), 
         axis.text = element_text(size=14))
+p2
 
 p3 <- ggplot(data = ranef_winter)+
   geom_point(mapping=aes(x=WINTER, y=medsnowdepth), size=2)+
@@ -224,6 +227,7 @@ p3 <- ggplot(data = ranef_winter)+
   labs(x="Year", y="Median snow depth (mm)")+
   theme(axis.title = element_text(size=16), 
         axis.text = element_text(size=12))
+p3
 
 #plot of mean snow depth in mm by year
 ggplot(data = ranef_winter)+
@@ -239,6 +243,7 @@ p4 <- ggplot(data = ranef_winter)+
   labs(x="Year", y="# days snow depth > 200 mm")+
   theme(axis.title = element_text(size=16), 
                 axis.text = element_text(size=12))
+p4
 
 
 # combine all into one plot
@@ -256,6 +261,7 @@ p5 <- ggplot(data = ranef_winter)+
   xlab("median frost depth (mm)")+
   theme(axis.title = element_text(size=16), 
         axis.text = element_text(size=12))
+p5
 
 p6 <- ggplot(data = ranef_winter)+
   geom_point(mapping=aes(x=medsnowdepth, y=condval))+
@@ -264,6 +270,7 @@ p6 <- ggplot(data = ranef_winter)+
   xlab("median snow depth (mm)")+
   theme(axis.title = element_text(size=16), 
         axis.text = element_text(size=12))
+p6
 
 p7 <- ggplot(data = ranef_winter)+
   geom_point(mapping=aes(x=sumsnowdepth, y=condval))+
@@ -272,6 +279,7 @@ p7 <- ggplot(data = ranef_winter)+
   xlab("# days snow depth > 200mm")+
   theme(axis.title = element_text(size=16), 
         axis.text = element_text(size=12))
+p7
 
 p8 <- ggplot(data = ranef_winter)+
   geom_point(mapping=aes(x=sumfrostdepth, y=condval))+
@@ -280,6 +288,7 @@ p8 <- ggplot(data = ranef_winter)+
   xlab("# days frost depth > 50mm")+
   theme(axis.title = element_text(size=16), 
         axis.text = element_text(size=12))
+p8
 
 
 # combine all into one plot

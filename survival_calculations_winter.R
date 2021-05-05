@@ -163,7 +163,6 @@ seedBrch <- pivot_longer(seedBrch, !seedID, names_to = "interval",
 seedInterval <- left_join(seedSurvInt, seedLvs) %>%
   left_join(seedDmg) %>%
   left_join(seedBrch) %>%
-  left_join(seedHgt) %>% 
   filter(!is.na(survival)) # remove lines where survival is NA
 
 # Find the seedling age in each interval based on birth year
@@ -256,8 +255,8 @@ seedSurvival <- seedIntervalAge %>%
             totSeed = n()) %>%
   mutate(propSurv = sumSurv/totSeed)
 
-seedSurvival <- seedIntervalAge %>%
-  filter(interval=="2019-2020")
+# seedSurvival <- seedIntervalAge %>%
+  # filter(interval=="2019-2020")
 
 ggplot(seedSurvival, aes(x=interval, y=propSurv))+
   geom_bar(stat="identity", fill="skyblue4")+
@@ -268,27 +267,27 @@ ggplot(seedSurvival, aes(x=interval, y=propSurv))+
   theme(axis.text.x = element_text(angle=19))
 
 
-### Is this data including the new seedlings? 
-# Need to remove that to look at year to year survival 
-table(seedSurvInt$survival)
-table(Seed$Stat18_19)
-table(seedSurv$Stat17)
-table(seedSurv$Stat18)
-table(seedSurv$Stat19)
-table(seedSurv$Stat20)
-
-#trying with seedSurvInt data frame
-# includes seedlings survival across year intervals
-# includes NA values - may be redundant
-test3 <- seedSurvInt %>%
-  group_by(interval) %>%
-  summarise(propSurv = sum(survival, na.rm=TRUE)/n()) 
-
-test3 <- seedSurvInt %>%
-  group_by(interval) %>%
-  summarise(sumSurv = sum(survival, na.rm=TRUE),
-            totSeed = n()) %>%
-  mutate(propSurv = sumSurv/totSeed)
+# ### Is this data including the new seedlings? 
+# # Need to remove that to look at year to year survival 
+# table(seedSurvInt$survival)
+# table(Seed$Stat18_19)
+# table(seedSurv$Stat17)
+# table(seedSurv$Stat18)
+# table(seedSurv$Stat19)
+# table(seedSurv$Stat20)
+# 
+# #trying with seedSurvInt data frame
+# # includes seedlings survival across year intervals
+# # includes NA values - may be redundant
+# test3 <- seedSurvInt %>%
+#   group_by(interval) %>%
+#   summarise(propSurv = sum(survival, na.rm=TRUE)/n()) 
+# 
+# test3 <- seedSurvInt %>%
+#   group_by(interval) %>%
+#   summarise(sumSurv = sum(survival, na.rm=TRUE),
+#             totSeed = n()) %>%
+#   mutate(propSurv = sumSurv/totSeed)
 
 #########################################################
 #########################################################
@@ -314,6 +313,12 @@ ranef(M1)
 glance(M1) # from broom.mixed package, returns table with AIC, BIC, & df of residual
 tidy(M1)
 coef(M1)
+
+
+test <- glmer(survival ~ 1 + (1|interval), 
+            data=seedIntervalAge, family="binomial")
+summary(test)
+
 
 #make random effects data into a data frame
 random <- data.frame(ranef(M1))
@@ -481,8 +486,12 @@ RMSE
 #with Year interval as a random effect
 M12 <- glmer(survival ~ leafNumber + log(yearsAlive) + (1|interval), 
              data=seedIntervalAge, family = "binomial")
-summary(M11)
-ranef(M11)
+summary(M12)
+ranef(M12)
+
+
+nullMod <- glmer(survival ~ 1 + (1|interval), data=seedIntervalAge, family="binomial")
+summary(nullMod)
 
 ####################################################################################
 ####################################################################################
@@ -517,7 +526,12 @@ sumHQ <- HB_snowHQ %>%
             sdsnowdepth = sd(snow_depth, na.rm=TRUE),
             medfrostpct = median(frost_pct, na.rm=TRUE))
 
+# Find average number of collection dates each winter
+sumHQ_2 <- HB_snowHQ %>% 
+  group_by(WINTER) %>% 
+  summarize(n = n())
 
+mean(sumHQ_2$n)
 
 
 

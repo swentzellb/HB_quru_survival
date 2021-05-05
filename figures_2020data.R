@@ -11,7 +11,6 @@
 
 #load packages
 library(tidyverse)
-library(tidyr)
 library(lme4)
 library(MASS)
 library(raster)
@@ -455,6 +454,10 @@ summary(Mod9)
 Mod10 <- glm(Surv_18_19 ~ ShrubCover_mean, data=Can_Cover_Surv,
             family = quasibinomial(logit))
 summary(Mod10)
+
+nullMod <- glm(Surv_18_19 ~ 1, data=Can_Cover_Surv,
+               family = quasibinomial(logit))
+summary(nullMod)
 #########################################################################
 ## Individual Sdlg Survival Modeling
 

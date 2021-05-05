@@ -9,7 +9,6 @@
 
 #load packages
 library(tidyverse)
-library(tidyr)
 library(ggplot2)
 library(raster)
 library(lme4)
