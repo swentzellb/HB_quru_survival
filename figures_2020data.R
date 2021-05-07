@@ -382,6 +382,8 @@ cor.test(Cover_Surv$ShrubCover_mean, Cover_Surv$Surv_18_19) #p-value 0.1
 #comparing distance to survival
 cor.test(Seed_Dist$HQdist, Seed_Dist$Surv_18_19)
 
+cor.test(Cover_Surv$Surv_18_19, Cover_Surv$Abund18)
+
 #comparing available substrate to abundance
 cor.test(Cover_Surv$Sub_mean, Cover_Surv$Abund19) #p-value 0.49
 
