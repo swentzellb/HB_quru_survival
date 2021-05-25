@@ -1,7 +1,7 @@
 # HB_quru_survival
 Code to analyze environmental and individual factors influencing QURU seedling survival at Hubbard Brook
 
-Order of file organization: prelim, Initial_HB_Survival_Enviro_July2020, survival_initial_calc, stat_modeling, figures, figures_2020data, survival_calculations, survival_calculations_JM, survival_calculations_JM_Jan21, survival_modeling, winter, survival_calculations_winter, survival_calculations_Mar21
+Order of file organization: prelim, Initial_HB_Survival_Enviro_July2020, survival_initial_calc, stat_modeling, figures, figures_2020data, survival_calculations, survival_calculations_JM, survival_calculations_JM_Jan21, survival_modeling, winter, survival_calculations_winter, survival_calculations_Mar21, winter_figures, ShrubCover2020
 
 winter = data cleaning and preliminary analysis of winter climate variables from Hubbard Brook 
 
