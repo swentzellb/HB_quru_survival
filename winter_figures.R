@@ -145,7 +145,7 @@ cor.test(sumHQ$sumfrostdepth, sumW6$sumfrostdepth)
 
 
 #plot the median frost depth by winter
-ggplot(data = summary)+
+ggplot(data = sumHQ)+
   geom_point(mapping=aes(x=WINTER, y=medfrostdepth))
 
 #plot the median snow depth by winter
@@ -253,9 +253,10 @@ plot_grid(p1, p2, p3, p4, rel_heights = c(1, 1), labels = "auto")
 ################################################
 # plots of ranef vs winter climate variables
 ################################################
-
+lm5 <- lm(condval ~ medfrostdepth, data = ranef_winter)
 p5 <- ggplot(data = ranef_winter)+
-  geom_point(mapping=aes(x=medfrostdepth, y=condval))+
+  geom_point(mapping=aes(x=medfrostdepth, y=condval), size = 2)+
+#  geom_smooth(method = 'lm')
   theme_bw()+
   ylab("random effect values")+
   xlab("median frost depth (mm)")+
@@ -264,7 +265,7 @@ p5 <- ggplot(data = ranef_winter)+
 p5
 
 p6 <- ggplot(data = ranef_winter)+
-  geom_point(mapping=aes(x=medsnowdepth, y=condval))+
+  geom_point(mapping=aes(x=medsnowdepth, y=condval), size = 2)+
   theme_bw()+
   ylab("random effect values")+
   xlab("median snow depth (mm)")+
@@ -282,7 +283,7 @@ p7 <- ggplot(data = ranef_winter)+
 p7
 
 p8 <- ggplot(data = ranef_winter)+
-  geom_point(mapping=aes(x=sumfrostdepth, y=condval))+
+  geom_point(mapping=aes(x=sumfrostdepth, y=condval), size = 2)+
   theme_bw()+
   ylab("random effect values")+
   xlab("# days frost depth > 50mm")+

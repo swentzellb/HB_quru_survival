@@ -277,7 +277,7 @@ ggplot(Shrub_Surv, aes(x=ShrubCover_mean, y=Surv_18_19))+
 plot(p1)
 #ggsave("Shrub_Surv1819.jpeg", p1, width=6, height=5)
 
-#plot of mean shrub cover at 20m bins by percent seedling survival 2018-2019
+#plot of mean shrub cover at 20m bins by percent seedling survival 2019-2020
 ggplot(Shrub_Surv2, aes(x=ShrubCover_mean, y=Surv_19_20))+
   geom_point(size=3)+
   labs(x="Shrub Cover (%)",
