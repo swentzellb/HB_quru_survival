@@ -1,9 +1,12 @@
 # Sage Wentzell-Brehme
-# November 24, 2020
+# January 22, 2021
 # Senior Thesis
 # Data analysis
 # QURU sdlg survival at Hubbard Brook valley wide plots 
 # between 2011 and 2020
+
+# Reordering spreadsheet of seedling survival data
+
 
 
 #load packages

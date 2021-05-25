@@ -7,6 +7,8 @@
 
 #UPDATED Sept 30, 2020 to include 2020 data
 
+#UPDATED January 2021 to fix cleaning of seedling survival dataset & reordering
+
 #load packages
 library(tidyverse)
 library(ggplot2)
