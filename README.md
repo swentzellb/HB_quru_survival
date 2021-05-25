@@ -14,3 +14,5 @@ winter_figures = GLMM of seedling survival across multiple years + winter climat
 survival_calculations_Mar21 = up to date GLMM of seedling survival at Hubbard Brook across multiple years with individual characteristisc as fixed predictors + model testing + figures of various models
 
 ShrubCover2020 = comparing shrub cover data from summer 2019 and 2020 
+
+figures_2020data = finalized figures of seedling survival data w/ environmental factors & individual characteristics
